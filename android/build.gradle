@@ -29,13 +29,13 @@ android {
   compileSdkVersion getExtOrIntegerDefault('compileSdkVersion')
   buildToolsVersion getExtOrDefault('buildToolsVersion')
   defaultConfig {
-    minSdkVersion 16
+    minSdkVersion 23
     targetSdkVersion getExtOrIntegerDefault('targetSdkVersion')
     versionCode 1
     versionName "1.0"
-    
+
   }
-  
+
   buildTypes {
     release {
       minifyEnabled false
@@ -124,6 +124,18 @@ repositories {
 def kotlin_version = getExtOrDefault('kotlinVersion')
 
 dependencies {
+  implementation 'co.nstant.in:cbor:0.8'
+
+  implementation('com.amazonaws:aws-android-sdk-mobile-client:2.13.5')
+  implementation ('com.amazonaws:aws-android-sdk-iot:2.13.5')
+
+  implementation fileTree(dir: 'libs', include: ['*.jar'])
+  implementation 'com.android.support:appcompat-v7:28.0.0'
+  testImplementation 'junit:junit:4.12'
+
+  compileOnly 'org.projectlombok:lombok:1.18.4'
+  annotationProcessor 'org.projectlombok:lombok:1.18.4'
+
   // noinspection GradleDynamicVersion
   api 'com.facebook.react:react-native:+'
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
