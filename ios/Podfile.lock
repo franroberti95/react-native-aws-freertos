@@ -2,79 +2,31 @@ PODS:
   - AmazonFreeRTOS (1.2.0):
     - AWSIoT
     - CBORCoding
-  - AWSAuthCore (2.17.0):
-    - AWSCore (= 2.17.0)
-  - AWSAuthUI (2.17.0):
-    - AWSAuthCore (= 2.17.0)
-    - AWSCore (= 2.17.0)
-  - AWSCognitoIdentityProvider (2.17.0):
-    - AWSCognitoIdentityProviderASF (= 2.17.0)
-    - AWSCore (= 2.17.0)
-  - AWSCognitoIdentityProviderASF (2.17.0)
-  - AWSCore (2.17.0)
-  - AWSIoT (2.17.0):
-    - AWSCore (= 2.17.0)
-  - AWSMobileClient (2.17.0):
-    - AWSAuthCore (= 2.17.0)
-    - AWSCognitoIdentityProvider (= 2.17.0)
-    - AWSCognitoIdentityProviderASF (= 2.17.0)
-    - AWSCore (= 2.17.0)
-  - AWSUserPoolsSignIn (2.17.0):
-    - AWSAuthCore (= 2.17.0)
-    - AWSCognitoIdentityProvider (= 2.17.0)
-    - AWSCore (= 2.17.0)
+  - AWSCore (2.23.3)
+  - AWSIoT (2.23.3):
+    - AWSCore (= 2.23.3)
   - CBORCoding (1.2.0):
     - Half (~> 1.2)
   - Half (1.2.0)
-  - LicensePlist (3.0.5)
-  - SwiftFormat/CLI (0.47.13)
-  - SwiftLint (0.43.1)
 
 DEPENDENCIES:
-  - AmazonFreeRTOS (from `./amazon-freertos-ble-ios-sdk-master`)
-  - AWSAuthUI
-  - AWSMobileClient (~> 2.17.0)
-  - AWSUserPoolsSignIn
-  - LicensePlist
-  - SwiftFormat/CLI
-  - SwiftLint
+  - AmazonFreeRTOS
 
 SPEC REPOS:
   trunk:
-    - AWSAuthCore
-    - AWSAuthUI
-    - AWSCognitoIdentityProvider
-    - AWSCognitoIdentityProviderASF
+    - AmazonFreeRTOS
     - AWSCore
     - AWSIoT
-    - AWSMobileClient
-    - AWSUserPoolsSignIn
     - CBORCoding
     - Half
-    - LicensePlist
-    - SwiftFormat
-    - SwiftLint
-
-EXTERNAL SOURCES:
-  AmazonFreeRTOS:
-    :path: "./amazon-freertos-ble-ios-sdk-master"
 
 SPEC CHECKSUMS:
   AmazonFreeRTOS: 946c416db1d434e978de7f11e2b2537366460215
-  AWSAuthCore: 35e63f55ee6fa31b848dfa8fcddbe0fccdba9a13
-  AWSAuthUI: 029e3ddef74b160cded0afd56b3832135b4479ee
-  AWSCognitoIdentityProvider: bbc75ab74931db6909ffd9b24e7f4e52ae210361
-  AWSCognitoIdentityProviderASF: 87ebf727c8429f93b4188b2ad13ad1f76ce3cefd
-  AWSCore: f20f7eb426d598ab753219e41ba524c0dc6f2b5c
-  AWSIoT: 4ae5e253a19e1b10d1beb82aaf6fc4d54c967793
-  AWSMobileClient: 45523613684950c049914eacbc9f19cdd9f4cc83
-  AWSUserPoolsSignIn: 707ae39b9f724372ee43cb16ff288acd37fefed8
+  AWSCore: c60e635b1a61cb27b6dfff646ce9f402be870b62
+  AWSIoT: 16092d898f8c968ff2bb2acb84cd816b1ff198f6
   CBORCoding: 12cd1a0e84b09a4d583087e923358902b78cd667
   Half: 672e8edf40996dd500ce6308b9cf8da82c709d90
-  LicensePlist: 11c638fa9dc22ddb5771cdf910242ae1ba2684da
-  SwiftFormat: 73573b89257437c550b03d934889725fbf8f75e5
-  SwiftLint: 99f82d07b837b942dd563c668de129a03fc3fb52
 
-PODFILE CHECKSUM: 8ea373145465946dc272fa55aefd185e0cd1c864
+PODFILE CHECKSUM: 12772243588f4e5903aaa670cf96329e6d90731b
 
 COCOAPODS: 1.10.1

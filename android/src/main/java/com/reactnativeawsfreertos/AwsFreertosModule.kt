@@ -17,12 +17,14 @@ import com.amazonaws.mobile.client.AWSMobileClient
 import com.amazonfreertossdk.*
 import com.amazonfreertossdk.networkconfig.*
 import com.facebook.react.bridge.*
+import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import java.util.*
 
 class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
   private val REQUEST_ENABLE_BT = 1
   private val PERMISSION_REQUEST_FINE_LOCATION = 1
+  private val SCAN_BT_DEVICE_EVENT_NAME = "SCAN_BT_DEVICE"
   //private val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
 
   override fun getName(): String {
@@ -54,7 +56,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
 
   val mBleDevices = ArrayList<BleDevice>()
   @ReactMethod
-  fun startScanBtDevices(callback: Callback) {
+  fun startScanBtDevices() {
       //Getting AmazonFreeRTOSManager
       val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity);
       mAmazonFreeRTOSManager.startScanDevices(
@@ -66,10 +68,24 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
               if (!mBleDevices.contains(thisDevice)) {
                 mBleDevices.add(thisDevice);
               }
-            callback(thisDevice);
+            sendBleEvent(result);
           }
         }, 10000);
     }
+
+  private fun sendBleEvent(result: ScanResult){
+    val resultData: WritableMap = WritableNativeMap()
+    resultData.putString("macAddr", result.device.address)
+    resultData.putString("name", result.device.name)
+
+    sendEvent(SCAN_BT_DEVICE_EVENT_NAME,resultData)
+  }
+
+  private fun sendEvent(eventName: String, params: WritableMap?){
+    reactApplicationContext
+      .getJSModule(RCTDeviceEventEmitter::class.java)
+      .emit(eventName, params);
+  }
 
   private var connectedDevice: AmazonFreeRTOSDevice? = null;
   @ReactMethod
@@ -131,7 +147,18 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
             response.connected)
 
           bssidToString(wifiInfo.bssid)?.let { mBssid2WifiInfoMap.put(it, wifiInfo) }
-          promise.resolve(wifiInfo)
+
+
+          val resultData: WritableMap = WritableNativeMap()
+          resultData.putString("ssid", response.ssid)
+          resultData.putInt("status", response.status)
+          resultData.putString("bssid", bssidToString(response.bssid))
+          resultData.putInt("rssi", response.rssi)
+          resultData.putInt("security", response.security)
+          resultData.putInt("index", response.index)
+          resultData.putBoolean("connected", response.connected)
+
+          promise.resolve(resultData)
         }
       }
       override fun onSaveNetworkResponse(response: SaveNetworkResp?) {
@@ -178,7 +205,16 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
 
           bssidToString(wifiInfo.bssid)?.let { mBssid2WifiInfoMap.put(it, wifiInfo) }
 
-          promise.resolve(wifiInfo)
+          val resultData: WritableMap = WritableNativeMap()
+          resultData.putString("ssid", response.ssid)
+          resultData.putInt("status", response.status)
+          resultData.putString("bssid", bssidToString(response.bssid))
+          resultData.putInt("rssi", response.rssi)
+          resultData.putInt("security", response.security)
+          resultData.putInt("index", response.index)
+          resultData.putBoolean("connected", response.connected)
+
+          promise.resolve(resultData)
         }
       }
       override fun onSaveNetworkResponse(response: SaveNetworkResp?) {

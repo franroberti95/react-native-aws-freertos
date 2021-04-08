@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 
 type AwsFreertosType = {
-  startScanBtDevices(callback: (item: BtDevice) => void): void;
+  startScanBtDevices(): void;
   requestBtPermissions(): Promise<any>;
   connectDevice(macAddress: string): Promise<any>;
   disconnectDevice(): Promise<any>;

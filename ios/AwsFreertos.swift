@@ -1,9 +1,12 @@
+import AmazonFreeRTOS
 
 @objc(AwsFreertos)
 class AwsFreertos: NSObject {
 
     @objc(startScanBtDevices:withResolver:withRejecter:)
     func startScanBtDevices(_ callback:(_: Any) -> Void,resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
+        AmazonFreeRTOSManager.shared.startScanForDevices();
+
         resolve("OK")
     }
     @objc(requestBtPermissions:withRejecter:)
