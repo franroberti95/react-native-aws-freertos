@@ -4,9 +4,14 @@ type AwsFreertosType = {
   startScanBtDevices(): void;
   requestBtPermissions(): Promise<any>;
   connectDevice(macAddress: string): Promise<any>;
-  disconnectDevice(): Promise<any>;
-  saveNetworkOnConnectedDevice(bssid: string, pw: string): Promise<any>;
-  getConnectedDeviceNetworks(): Promise<WifiInfo[]>;
+  disconnectDevice(macAddress: string): Promise<any>;
+  saveNetworkOnConnectedDevice(
+    macAddr: string,
+    bssid: string,
+    pw: string
+  ): Promise<any>;
+  getConnectedDeviceNetworks(macAddress: string): Promise<WifiInfo[]>;
+  sendMyEvent(): void;
 };
 
 const { AwsFreertos } = NativeModules;

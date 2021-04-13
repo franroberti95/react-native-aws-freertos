@@ -1,22 +1,27 @@
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '10.0'
+platform :ios, '11.0'
 
 target 'AwsFreertosExample' do
   config = use_native_modules!
 
   use_react_native!(:path => config["reactNativePath"])
 
+  use_frameworks! :linkage => :static
+  pod 'AmazonFreeRTOS'
+  pod 'AmazonFreeRTOS'
+  pod 'AWSAuthUI'
+  pod 'AWSMobileClient','~> 2.17.0'
+  pod 'AWSUserPoolsSignIn'
   pod 'react-native-aws-freertos', :path => '../..'
 
   # Enables Flipper.
   #
   # Note that if you have use_frameworks! enabled, Flipper will not work and
   # you should disable these next few lines.
-  use_flipper!({'Flipper-Folly' => '2.3.0'})
-  post_install do |installer|
-    flipper_post_install(installer)
-  end
-
+  #use_flipper!({ 'Flipper' => '0.80.0' })
+  #post_install do |installer|
+  #  flipper_post_install(installer)
+  #end
 end
