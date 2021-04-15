@@ -5,6 +5,7 @@ import { routes } from './constants/routes';
 import BluetoothScreen from './BluetoothScreen';
 import WifiScreen from './WifiScreen';
 import { Text } from 'react-native';
+import SuccessWifiProvision from './SuccessWifiProvision';
 
 const Stack = createStackNavigator();
 
@@ -12,15 +13,23 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName={routes.bluetoothScreen}>
-        <Stack.Screen name={routes.bluetoothScreen} component={BluetoothScreen} />
+        <Stack.Screen
+          name={routes.bluetoothScreen}
+          component={BluetoothScreen}
+        />
         <Stack.Screen
           options={({ route }) => {
-            const { deviceMacAddress } = route.params;
+            const { deviceName } = route.params;
             return {
-              headerTitle: () => <Text>{deviceMacAddress}</Text>,
-          }}}
+              headerTitle: () => <Text>{deviceName}</Text>,
+            };
+          }}
           name={routes.wifiScreen}
           component={WifiScreen}
+        />
+        <Stack.Screen
+          name={routes.successScreen}
+          component={SuccessWifiProvision}
         />
       </Stack.Navigator>
     </NavigationContainer>

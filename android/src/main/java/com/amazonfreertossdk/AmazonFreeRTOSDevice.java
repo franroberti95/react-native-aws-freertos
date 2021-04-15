@@ -80,7 +80,7 @@ public class AmazonFreeRTOSDevice {
     private Context mContext;
 
     @Getter
-    private BluetoothDevice mBluetoothDevice;
+    public BluetoothDevice mBluetoothDevice;
     private BluetoothGatt mBluetoothGatt;
     private BleConnectionStatusCallback mBleConnectionStatusCallback;
     private NetworkConfigCallback mNetworkConfigCallback;

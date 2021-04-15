@@ -1,4 +1,5 @@
 export const routes = {
   bluetoothScreen: 'BluetoothScreen',
-  wifiScreen: 'WifiScreen'
+  wifiScreen: 'WifiScreen',
+  successScreen: 'SuccessWifiProvision'
 }

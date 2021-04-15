@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import AwsFreertos, { WifiInfo } from 'react-native-aws-freertos';
-import { Alert, Button, SafeAreaView, ScrollView } from 'react-native';
+import AwsFreertos, { eventKeys, WifiInfo } from 'react-native-aws-freertos';
+import { Alert, Button, EmitterSubscription, SafeAreaView, ScrollView } from 'react-native';
 import {
   NativeEventEmitter,
   NativeModules,
@@ -10,13 +10,14 @@ import {
   View,
 } from 'react-native';
 import Input from "./components/Input";
+import { routes } from './constants/routes';
+import { arrayUtils } from './utils/array';
 
-const WifiScreen = ({ route }) => {
+const WifiScreen = ({ route, navigation }) => {
   const [isScanningDeviceWifiNetworks, setIsScanningDeviceWifiNetworks] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState(null);
-  const [pwValue, setPwValue] = useState('');
+  const [pwValue, setPwValue] = useState('Enzoni10');
   const [wifiNetworks, setWifiNetworks]:[WifiInfo[],any] = useState([]);
-  const SCAN_DEVICE_NETWORKS_EVENT_KEY = 'SCAN_DEVICE_NETWORKS';
   const { deviceMacAddress } = route.params;
   const wifiScannedNetworks: WifiInfo[] = [];
 
@@ -25,27 +26,37 @@ const WifiScreen = ({ route }) => {
       AwsFreertos.getConnectedDeviceNetworks(deviceMacAddress);
       setIsScanningDeviceWifiNetworks(true);
       const eventEmitter = new NativeEventEmitter(NativeModules.AwsFreertos);
-      const wifiEvent = eventEmitter.addListener(
-        SCAN_DEVICE_NETWORKS_EVENT_KEY,
-        onNetworkDiscovered
-      );
+      const wifiEvents: EmitterSubscription[] = [];
+
+      wifiEvents.push(eventEmitter.addListener(
+        eventKeys.DID_LIST_NETWORK,
+        (network: WifiInfo) => {
+          console.log(network)
+          wifiScannedNetworks.push(network);
+        }
+      ));
+      wifiEvents.push(eventEmitter.addListener(
+        eventKeys.DID_SAVE_NETWORK,
+        (wifi: WifiInfo) => {
+          navigation.navigate(routes.successScreen, {
+            deviceMacAddress,
+            wifiSsid: wifi && wifi.ssid
+          });
+        }
+      ));
+
       const wifiInterval = setInterval(()=>{
-        if(wifiScannedNetworks.length !== wifiNetworks.length)
-          setWifiNetworks(wifiScannedNetworks);
-      }, 1000)
+        setWifiNetworks(arrayUtils.uniqBy(wifiScannedNetworks, (item) => item.bssid));
+      }, 2000)
 
       return () => {
         clearInterval(wifiInterval);
-        wifiEvent.remove();
+        wifiEvents.forEach( event => event.remove());
       }
     } catch (e) {
       console.warn(e);
     }
   }, []);
-  const onNetworkDiscovered = (network: WifiInfo) => {
-    if (wifiNetworks.find((r) => network.ssid === r.ssid)) return;
-    wifiScannedNetworks.push(network);
-  }
 
   const onConnectToNetwork = (network: WifiInfo) => () => {
     AwsFreertos.saveNetworkOnConnectedDevice(deviceMacAddress, network.bssid, pwValue);

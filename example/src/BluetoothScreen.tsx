@@ -7,11 +7,10 @@ import {
   NativeEventEmitter,
   NativeModules,
   StyleSheet,
+  EmitterSubscription,
 } from 'react-native';
-import AwsFreertos, { BtDevice } from 'react-native-aws-freertos';
+import AwsFreertos, { BtDevice, eventKeys } from 'react-native-aws-freertos';
 import { routes } from './constants/routes';
-
-const SCAN_BT_DEVICE_EVENT_KEY = 'SCAN_BT_DEVICE';
 
 const BluetoothScreen = ({ navigation }) => {
   const [result, setResult] = useState<BtDevice[]>([]);
@@ -21,14 +20,49 @@ const BluetoothScreen = ({ navigation }) => {
     try {
       AwsFreertos.requestBtPermissions();
       const eventEmitter = new NativeEventEmitter(NativeModules.AwsFreertos);
-      const btEvent = eventEmitter.addListener(
-        SCAN_BT_DEVICE_EVENT_KEY,
-        (device) => {
+      const btEvents: EmitterSubscription[] = [];
+
+      btEvents.push(
+        eventEmitter.addListener(eventKeys.DID_DISCOVERED_DEVICE, (device) => {
           if (result.some((r) => device.macAddr === r.macAddr)) return;
           setResult([...result, device]);
-        }
+        })
       );
-      return () => btEvent.remove();
+      btEvents.push(
+        eventEmitter.addListener(
+          eventKeys.DID_DISCONNECT_DEVICE,
+          (device: BtDevice) => {
+            console.warn(
+              'A device has been disconnected - mac: ' + device.macAddr
+            );
+          }
+        )
+      );
+      btEvents.push(
+        eventEmitter.addListener(
+          eventKeys.DID_CONNECT_DEVICE,
+          (device: BtDevice) => {
+            navigation.navigate(routes.wifiScreen, {
+              deviceMacAddress: device.macAddr,
+              deviceName: device.name
+            });
+          }
+        )
+      );
+
+      btEvents.push(
+        eventEmitter.addListener(
+          eventKeys.DID_FAIL_TO_CONNECT_DEVICE,
+          (device: BtDevice) => {
+            console.warn('FAILED TO CONNECT TO DEVICE ' + device.macAddr);
+          }
+        )
+      );
+
+      return () => {
+        AwsFreertos.stopScanBtDevices();
+        btEvents.forEach((btEvent) => btEvent.remove());
+      };
     } catch (e) {
       console.warn(e);
     }
@@ -40,19 +74,10 @@ const BluetoothScreen = ({ navigation }) => {
   };
 
   const onConnectToDevice = (device: BtDevice) => () => {
-//    AwsFreertos.disconnectDevice(device.macAddr)
-//      .then( () => {
-        AwsFreertos.connectDevice(device.macAddr)
-          .then(() => {
-            navigation.navigate(routes.wifiScreen, {
-              deviceMacAddress: device.macAddr,
-            });
-          })
-          .catch((e) => {
-            console.warn('COULD NOT CONNECT',e);
-          });
-
-//      })
+    //    AwsFreertos.disconnectDevice(device.macAddr)
+    //      .then( () => {
+    AwsFreertos.connectDevice(device.macAddr);
+    //      })
   };
 
   return (
@@ -70,7 +95,7 @@ const BluetoothScreen = ({ navigation }) => {
           style={styles.deviceTextContainer}
           onPress={onConnectToDevice(r)}
         >
-          <Text style={styles.deviceText}>{r.macAddr}</Text>
+          <Text style={styles.deviceText}>{r.name}</Text>
         </TouchableOpacity>
       ))}
     </SafeAreaView>

@@ -45,7 +45,7 @@ const Input = ({
   toggleVisibility,
   caption,
 }: InputInterface) => {
-  const [visibilityOn, setVisibilityOn] = useState(false);
+  const [visibilityOn, setVisibilityOn] = useState(true);
 
   const eyeIconSize = 24;
   return (
