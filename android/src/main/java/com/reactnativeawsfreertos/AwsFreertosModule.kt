@@ -163,6 +163,11 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
     override fun onSaveNetworkResponse(response: SaveNetworkResp?) {
       Log.i("DEVICE", "Network saved ! status: " + response.toString())
 
+      if(response.toString() != "SaveNetworkResponse ->\n status: 0"){
+        sendEvent(WifiEvents.ERROR_SAVE_NETWORK.name,null)
+        return;
+      }
+
       if(lastConnectedWifiInfo != null){
         val resultData: WritableMap = WritableNativeMap()
         resultData.putString("status", response.toString())// 0 for success
@@ -209,18 +214,12 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
   }
 
   @ReactMethod
-  fun disconnectNetworkOnConnectedDevice(macAddr: String, bssid: String) {
+  fun disconnectNetworkOnConnectedDevice(macAddr: String, index: Int) {
     val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
     val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
-    val wifiInfo = mBssid2WifiInfoMap[bssid];
-
-    if(wifiInfo == null){
-      Log.e("DISCONNECT NETWORK", "Wifi network is not found. $bssid")
-      return
-    }
 
     val deleteNetworkReq = DeleteNetworkReq()
-    deleteNetworkReq.index = wifiInfo.index
+    deleteNetworkReq.index = index
     if (connectedDevice != null) {
       mHandler.post {
         connectedDevice.deleteNetwork(deleteNetworkReq, mNetworkConfigCallback)

@@ -26,6 +26,7 @@ const WifiScreen = ({ route, navigation }) => {
   ] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState(null);
   const [pwValue, setPwValue] = useState('Enzoni10');
+  const [errorSavingNetwork, setErrorSavingNetwork] = useState(false);
   const [availableWifiNetworks, setAvailableWifiNetworks]: [
     WifiInfo[],
     any
@@ -56,6 +57,7 @@ const WifiScreen = ({ route, navigation }) => {
         eventEmitter.addListener(
           eventKeys.DID_SAVE_NETWORK,
           (wifi: WifiInfo) => {
+            setErrorSavingNetwork(false)
             navigation.navigate(routes.successScreen, {
               deviceMacAddress,
               wifiSsid: wifi && wifi.ssid,
@@ -65,8 +67,16 @@ const WifiScreen = ({ route, navigation }) => {
       );
 
       wifiEvents.push(
+        eventEmitter.addListener(eventKeys.ERROR_SAVE_NETWORK, () => {
+          setErrorSavingNetwork(true);
+        })
+      );
+
+      wifiEvents.push(
         eventEmitter.addListener(eventKeys.DID_DELETE_NETWORK, () => {
           setNetworkToDelete(null);
+          setAvailableWifiNetworks([]);
+          AwsFreertos.getConnectedDeviceAvailableNetworks(deviceMacAddress);
         })
       );
 
@@ -101,12 +111,13 @@ const WifiScreen = ({ route, navigation }) => {
     setNetworkToDelete(network);
     AwsFreertos.disconnectNetworkOnConnectedDevice(
       deviceMacAddress,
-      network.bssid
+      network.index
     );
   };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      {errorSavingNetwork && <Text>Error saving network</Text>}
       {isScanningDeviceWifiNetworks && <Text>Scanning wifi networks</Text>}
       <Text>Wifi available networks</Text>
       {availableWifiNetworks && availableWifiNetworks.length > 0 && (

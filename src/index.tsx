@@ -6,7 +6,7 @@ type AwsFreertosType = {
   requestBtPermissions(): Promise<any>;
   connectDevice(macAddress: string): Promise<any>;
   disconnectDevice(macAddress: string): Promise<any>;
-  disconnectNetworkOnConnectedDevice(macAddress: string, bssid: string): Promise<any>;
+  disconnectNetworkOnConnectedDevice(macAddress: string, index: number): Promise<any>;
   saveNetworkOnConnectedDevice(
     macAddress: string,
     bssid: string,
@@ -51,6 +51,7 @@ export const eventKeys = {
   // Wifi events of paired up device
   DID_LIST_NETWORK: 'DID_LIST_NETWORK',
   DID_SAVE_NETWORK: 'DID_SAVE_NETWORK',
+  ERROR_SAVE_NETWORK: 'ERROR_SAVE_NETWORK',
   DID_EDIT_NETWORK: 'DID_EDIT_NETWORK',
   DID_DELETE_NETWORK: 'DID_DELETE_NETWORK',
 };
