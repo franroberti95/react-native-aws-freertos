@@ -1,9 +1,10 @@
-const uniqBy = (a: any[], key: (item: any) => any) => {
-  const seen: any = {};
-  return a.filter(function (item) {
-    const k = key(item);
-    return seen.hasOwnProperty(k) ? false : (seen[k] = true);
-  });
+const uniqBy = (a: any[], compareFun: (a: any, b: any) => any) => {
+  return a.reduce((accumulator, currentValue) => {
+    if (!accumulator.some((item) => compareFun(item, currentValue))) {
+      return [...accumulator, currentValue];
+    }
+    return accumulator;
+  }, []);
 };
 
 export const arrayUtils = {

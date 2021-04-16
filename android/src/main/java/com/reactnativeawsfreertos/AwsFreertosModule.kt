@@ -177,7 +177,9 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
     }
 
     override fun onDeleteNetworkResponse(response: DeleteNetworkResp?) {
-      sendEvent(WifiEvents.DID_DELETE_NETWORK.name, null)
+      mHandler.post {
+        sendEvent(WifiEvents.DID_DELETE_NETWORK.name, null)
+      }
     }
 
     override fun onEditNetworkResponse(response: EditNetworkResp?) {
@@ -210,7 +212,6 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
   fun disconnectNetworkOnConnectedDevice(macAddr: String, bssid: String) {
     val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
     val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
-    val saveNetworkReq = SaveNetworkReq();
     val wifiInfo = mBssid2WifiInfoMap[bssid];
 
     if(wifiInfo == null){
@@ -221,12 +222,12 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
     val deleteNetworkReq = DeleteNetworkReq()
     deleteNetworkReq.index = wifiInfo.index
     if (connectedDevice != null) {
-      connectedDevice.deleteNetwork(deleteNetworkReq, mNetworkConfigCallback)
+      mHandler.post {
+        connectedDevice.deleteNetwork(deleteNetworkReq, mNetworkConfigCallback)
+      }
     } else {
       Log.e("DISCONNECT NETWORK", "Device is not found. $macAddr")
     }
-    lastConnectedWifiInfo = wifiInfo
-    connectedDevice?.saveNetwork(saveNetworkReq, mNetworkConfigCallback)
   }
 
   private fun bytesToHexString(bytes: ByteArray): String? {

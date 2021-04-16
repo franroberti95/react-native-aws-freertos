@@ -6,7 +6,7 @@ type AwsFreertosType = {
   requestBtPermissions(): Promise<any>;
   connectDevice(macAddress: string): Promise<any>;
   disconnectDevice(macAddress: string): Promise<any>;
-  disconnectNetwork(macAddress: string, bssid: string): Promise<any>;
+  disconnectNetworkOnConnectedDevice(macAddress: string, bssid: string): Promise<any>;
   saveNetworkOnConnectedDevice(
     macAddress: string,
     bssid: string,
