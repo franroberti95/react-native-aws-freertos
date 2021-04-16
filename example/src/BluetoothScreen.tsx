@@ -15,6 +15,7 @@ import { routes } from './constants/routes';
 const BluetoothScreen = ({ navigation }) => {
   const [result, setResult] = useState<BtDevice[]>([]);
   const [scanning, setScanning] = useState(false);
+  const [connectingToDevice, setConnectingToDevice] = useState<BtDevice | null>(null);
 
   React.useEffect(() => {
     try {
@@ -44,7 +45,7 @@ const BluetoothScreen = ({ navigation }) => {
           (device: BtDevice) => {
             navigation.navigate(routes.wifiScreen, {
               deviceMacAddress: device.macAddr,
-              deviceName: device.name
+              deviceName: device.name,
             });
           }
         )
@@ -68,16 +69,20 @@ const BluetoothScreen = ({ navigation }) => {
     }
   }, []);
 
+  let scanTimeout: NodeJS.Timeout | null = null;
   const onScanBtDevices = () => {
+    if (scanTimeout !== null) {
+      clearTimeout(scanTimeout);
+    }
     setScanning(true);
+    scanTimeout = setInterval(() => setScanning(false), 10000);
     AwsFreertos.startScanBtDevices();
   };
 
   const onConnectToDevice = (device: BtDevice) => () => {
-    //    AwsFreertos.disconnectDevice(device.macAddr)
-    //      .then( () => {
+    if (connectingToDevice) return;
+    setConnectingToDevice(device);
     AwsFreertos.connectDevice(device.macAddr);
-    //      })
   };
 
   return (
@@ -88,6 +93,9 @@ const BluetoothScreen = ({ navigation }) => {
       >
         <Text style={styles.scanText}>Scan</Text>
       </TouchableOpacity>
+      {connectingToDevice && (
+        <Text>Connecting to device: {connectingToDevice.name}...</Text>
+      )}
       {scanning && <Text>Scanning</Text>}
       {result.map((r) => (
         <TouchableOpacity

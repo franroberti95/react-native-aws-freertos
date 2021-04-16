@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		655259D42628AA3E0025F800 /* EventsEnum.swift in Sources */ = {isa = PBXBuildFile; fileRef = 655259D32628AA3C0025F800 /* EventsEnum.swift */; };
 		F4FF95D7245B92E800C19C63 /* AwsFreertos.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* AwsFreertos.swift */; };
 /* End PBXBuildFile section */
 
@@ -24,6 +25,7 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libAwsFreertos.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libAwsFreertos.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		655259D32628AA3C0025F800 /* EventsEnum.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventsEnum.swift; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* AwsFreertos.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AwsFreertos.m; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* AwsFreertos-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AwsFreertos-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* AwsFreertos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AwsFreertos.swift; sourceTree = "<group>"; };
@@ -51,6 +53,7 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
+				655259D32628AA3C0025F800 /* EventsEnum.swift */,
 				F4FF95D6245B92E800C19C63 /* AwsFreertos.swift */,
 				B3E7B5891CC2AC0600A0062D /* AwsFreertos.m */,
 				F4FF95D5245B92E700C19C63 /* AwsFreertos-Bridging-Header.h */,
@@ -116,6 +119,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F4FF95D7245B92E800C19C63 /* AwsFreertos.swift in Sources */,
+				655259D42628AA3E0025F800 /* EventsEnum.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

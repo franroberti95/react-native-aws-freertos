@@ -6,12 +6,14 @@ type AwsFreertosType = {
   requestBtPermissions(): Promise<any>;
   connectDevice(macAddress: string): Promise<any>;
   disconnectDevice(macAddress: string): Promise<any>;
+  disconnectNetwork(macAddress: string, bssid: string): Promise<any>;
   saveNetworkOnConnectedDevice(
-    macAddr: string,
+    macAddress: string,
     bssid: string,
     pw: string
   ): Promise<any>;
-  getConnectedDeviceNetworks(macAddress: string): Promise<WifiInfo[]>;
+  getConnectedDeviceAvailableNetworks(macAddress: string): Promise<WifiInfo[]>;
+  getConnectedDeviceSavedNetworks(macAddress: string): Promise<WifiInfo[]>;
   getGattCharacteristicsFromServer(
     macAddress: string,
     serviceUuidString: string
@@ -34,7 +36,7 @@ export interface WifiInfo {
 
 export interface Characteristic {
   uuid: string;
-  value: string;
+  value: number[];
 }
 
 export const eventKeys = {

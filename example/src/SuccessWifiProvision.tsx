@@ -14,6 +14,10 @@ const SuccessWifiProvision = ({ route }) => {
     const event = eventEmitter.addListener(
       eventKeys.DID_READ_CHARACTERISTIC_FROM_SERVICE,
       (newCharacteristic: Characteristic) => {
+        newCharacteristic.value
+        if(newCharacteristic.value){
+          console.log("DASDASD -> ", newCharacteristic.value.map( i => String.fromCharCode(i)).join(''))
+        }
         intervalCharacteristics.push(newCharacteristic);
       }
     )

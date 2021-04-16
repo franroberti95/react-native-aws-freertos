@@ -160,9 +160,20 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
         sendEvent(WifiEvents.DID_LIST_NETWORK.name, networkResponseToWritableMap(response))
       }
     }
-
     override fun onSaveNetworkResponse(response: SaveNetworkResp?) {
-      sendEvent(WifiEvents.DID_SAVE_NETWORK.name, null)
+      Log.i("DEVICE", "Network saved ! status: " + response.toString())
+
+      if(lastConnectedWifiInfo != null){
+        val resultData: WritableMap = WritableNativeMap()
+        resultData.putString("status", response.toString())// 0 for success
+        resultData.putString("ssid", lastConnectedWifiInfo!!.ssid)
+        resultData.putString("bssid", bssidToString(lastConnectedWifiInfo!!.bssid))
+        resultData.putInt("rssi", lastConnectedWifiInfo!!.rssi)
+        resultData.putInt("security", lastConnectedWifiInfo!!.networkType)
+        resultData.putInt("index", lastConnectedWifiInfo!!.index)
+        resultData.putBoolean("connected", lastConnectedWifiInfo!!.connected)
+        sendEvent(WifiEvents.DID_SAVE_NETWORK.name,resultData)
+      }
     }
 
     override fun onDeleteNetworkResponse(response: DeleteNetworkResp?) {
@@ -173,7 +184,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
       sendEvent(WifiEvents.DID_EDIT_NETWORK.name, null)
     }
   }
-
+  private var lastConnectedWifiInfo: WifiInfo? = null
   @ReactMethod
   fun saveNetworkOnConnectedDevice(macAddr: String, bssid: String, pw: String, promise: Promise) {
     val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
@@ -191,22 +202,30 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
     saveNetworkReq.index = wifiInfo.index;
     saveNetworkReq.psk = pw;
 
-    val mNetworkConfigCallback: NetworkConfigCallback = object : NetworkConfigCallback() {
-      override fun onSaveNetworkResponse(response: SaveNetworkResp?) {
-        Log.i("DEVICE", "Network saved ! status: " + response.toString())
+    lastConnectedWifiInfo = wifiInfo
+    connectedDevice?.saveNetwork(saveNetworkReq, mNetworkConfigCallback)
+  }
 
-        val resultData: WritableMap = WritableNativeMap()
-        resultData.putString("status", response.toString())// 0 for success
-        resultData.putString("ssid", wifiInfo.ssid)
-        resultData.putString("bssid", bssidToString(wifiInfo.bssid))
-        resultData.putInt("rssi", wifiInfo.rssi)
-        resultData.putInt("security", wifiInfo.networkType)
-        resultData.putInt("index", wifiInfo.index)
-        resultData.putBoolean("connected", wifiInfo.connected)
-        sendEvent(WifiEvents.DID_SAVE_NETWORK.name,resultData)
-      }
+  @ReactMethod
+  fun disconnectNetworkOnConnectedDevice(macAddr: String, bssid: String) {
+    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
+    val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
+    val saveNetworkReq = SaveNetworkReq();
+    val wifiInfo = mBssid2WifiInfoMap[bssid];
+
+    if(wifiInfo == null){
+      Log.e("DISCONNECT NETWORK", "Wifi network is not found. $bssid")
+      return
     }
 
+    val deleteNetworkReq = DeleteNetworkReq()
+    deleteNetworkReq.index = wifiInfo.index
+    if (connectedDevice != null) {
+      connectedDevice.deleteNetwork(deleteNetworkReq, mNetworkConfigCallback)
+    } else {
+      Log.e("DISCONNECT NETWORK", "Device is not found. $macAddr")
+    }
+    lastConnectedWifiInfo = wifiInfo
     connectedDevice?.saveNetwork(saveNetworkReq, mNetworkConfigCallback)
   }
 
@@ -231,7 +250,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
   }
 
   @ReactMethod
-  fun getConnectedDeviceNetworks(macAddr: String) {
+  fun getConnectedDeviceAvailableNetworks(macAddr: String) {
     val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
     val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
     val mDevice = connectedDevice;
@@ -240,6 +259,29 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
     listNetworkReq.maxNetworks = 20
     listNetworkReq.timeout = 5
 
+    mDevice?.listNetworks(listNetworkReq, mNetworkConfigCallback)
+      ?: Log.e("ERR: ", "No device connected.")
+  }
+
+  @ReactMethod
+  fun getConnectedDeviceSavedNetworks(macAddr: String) {
+    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
+    val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
+    val mDevice = connectedDevice;
+
+    val listNetworkReq = ListNetworkReq()
+    listNetworkReq.maxNetworks = 20
+    listNetworkReq.timeout = 5
+
+    val mHandler = Handler(Looper.getMainLooper())
+    val mNetworkConfigCallback: NetworkConfigCallback = object : NetworkConfigCallback() {
+      override fun onListNetworkResponse(response: ListNetworkResp) {
+        mHandler.post {
+          if(response.connected)
+            sendEvent(WifiEvents.DID_LIST_NETWORK.name, networkResponseToWritableMap(response))
+        }
+      }
+    }
     mDevice?.listNetworks(listNetworkReq, mNetworkConfigCallback)
       ?: Log.e("ERR: ", "No device connected.")
   }
@@ -286,8 +328,12 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
           val responseBytes = characteristic.value
           Log.d("DEVICE", "->->-> onCharacteristicRead: " + bytesToHexString(responseBytes))
 
-          val resultData: WritableMap = WritableNativeMap();
-          resultData.putString("value",bytesToHexString(responseBytes))
+          val resultData: WritableMap = WritableNativeMap()
+          val valueData = WritableNativeArray()
+          for( byte in responseBytes){
+            valueData.pushInt(byte.toInt())
+          }
+          resultData.putArray("value", valueData)
           resultData.putString("uuid",characteristic.uuid.toString())
 
           sendEvent(BluetoothEvents.DID_READ_CHARACTERISTIC_FROM_SERVICE.name, resultData)

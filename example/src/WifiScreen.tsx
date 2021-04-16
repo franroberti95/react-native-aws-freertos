@@ -17,13 +17,16 @@ const WifiScreen = ({ route, navigation }) => {
   const [isScanningDeviceWifiNetworks, setIsScanningDeviceWifiNetworks] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState(null);
   const [pwValue, setPwValue] = useState('Enzoni10');
-  const [wifiNetworks, setWifiNetworks]:[WifiInfo[],any] = useState([]);
+  const [availableWifiNetworks, setAvailableWifiNetworks]:[WifiInfo[],any] = useState([]);
+  const [savedWifiNetworks, setSavedWifiNetworks]:[WifiInfo[],any] = useState([]);
+  const [networkToDelete, setNetworkToDelete]:[WifiInfo|null,any] = useState(null);
   const { deviceMacAddress } = route.params;
-  const wifiScannedNetworks: WifiInfo[] = [];
+  const wifiAvailableScannedNetworks: WifiInfo[] = [];
+  const wifiSavedScannedNetworks: WifiInfo[] = [];
 
   React.useEffect(() => {
     try {
-      AwsFreertos.getConnectedDeviceNetworks(deviceMacAddress);
+      AwsFreertos.getConnectedDeviceAvailableNetworks(deviceMacAddress);
       setIsScanningDeviceWifiNetworks(true);
       const eventEmitter = new NativeEventEmitter(NativeModules.AwsFreertos);
       const wifiEvents: EmitterSubscription[] = [];
@@ -31,8 +34,10 @@ const WifiScreen = ({ route, navigation }) => {
       wifiEvents.push(eventEmitter.addListener(
         eventKeys.DID_LIST_NETWORK,
         (network: WifiInfo) => {
-          console.log(network)
-          wifiScannedNetworks.push(network);
+          if(network.connected)
+            wifiAvailableScannedNetworks.push(network);
+          else
+            wifiSavedScannedNetworks.push(network)
         }
       ));
       wifiEvents.push(eventEmitter.addListener(
@@ -45,8 +50,17 @@ const WifiScreen = ({ route, navigation }) => {
         }
       ));
 
+      wifiEvents.push(eventEmitter.addListener(
+        eventKeys.DID_DELETE_NETWORK,
+        () => {
+          setSavedWifiNetworks(savedWifiNetworks.filter( wifi => wifi.bssid !== networkToDelete?.bssid))
+          setNetworkToDelete(null);
+        }
+      ));
+
       const wifiInterval = setInterval(()=>{
-        setWifiNetworks(arrayUtils.uniqBy(wifiScannedNetworks, (item) => item.bssid));
+        setAvailableWifiNetworks(arrayUtils.uniqBy(wifiAvailableScannedNetworks, (item) => item.bssid));
+        setSavedWifiNetworks(arrayUtils.uniqBy(wifiSavedScannedNetworks, (item) => item.bssid));
       }, 2000)
 
       return () => {
@@ -62,13 +76,41 @@ const WifiScreen = ({ route, navigation }) => {
     AwsFreertos.saveNetworkOnConnectedDevice(deviceMacAddress, network.bssid, pwValue);
   };
 
+  const disconnectFromNetwork = (network: WifiInfo) => () => {
+    if(networkToDelete) return;
+    setNetworkToDelete(network)
+    AwsFreertos.disconnectNetwork(deviceMacAddress,network.bssid)
+  }
+
   return (
     <SafeAreaView style={{flex:1}}>
       {isScanningDeviceWifiNetworks && <Text>Scanning wifi networks</Text>}
-      <Text>Wifi networks</Text>
-      {wifiNetworks && wifiNetworks.length > 0 && (
-        <ScrollView style={{height: 300, display: 'flex', flexDirection: 'column'}}>
-          {wifiNetworks.map((network, k) => (
+      <Text>Wifi connected networks</Text>
+      {savedWifiNetworks && savedWifiNetworks.length > 0 && (
+        <ScrollView style={{height: 500}}>
+          {availableWifiNetworks.map((network) => (
+            <View key={network.bssid}>
+              <TouchableOpacity
+                key={network.bssid}
+                style={styles.networkTextContainer}
+                onPress={disconnectFromNetwork(network)}
+              >
+                <Text>
+                  {
+                    networkToDelete && networkToDelete.bssid === network.bssid ?
+                      `Disconnecting from network: ${network.ssid}`:
+                      `-> Touch to disconnect from: ${network.ssid}`
+                  }
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+      <Text>Wifi available networks</Text>
+      {availableWifiNetworks && availableWifiNetworks.length > 0 && (
+        <ScrollView style={{height: 500}}>
+          {availableWifiNetworks.map((network, k) => (
             <View key={network.bssid}>
               <TouchableOpacity
                 key={network.bssid}
