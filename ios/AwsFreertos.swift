@@ -141,11 +141,6 @@ class AwsFreertos: RCTEventEmitter {
         AmazonFreeRTOSManager.shared.stopScanForDevices()
     }
     
-    @objc(stopScanBtDevices)
-    func stopScanBtDevices() -> Void {
-        AmazonFreeRTOSManager.shared.stopScanForDevices()
-    }
-    
     @objc(rescanForBtDevices)
     func rescanForDevices() -> Void {
         AmazonFreeRTOSManager.shared.rescanForDevices()
