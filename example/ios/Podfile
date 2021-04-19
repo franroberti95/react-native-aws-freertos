@@ -10,7 +10,6 @@ target 'AwsFreertosExample' do
 
   use_frameworks! :linkage => :static
   pod 'AmazonFreeRTOS'
-  pod 'AmazonFreeRTOS'
   pod 'AWSAuthUI'
   pod 'AWSMobileClient','~> 2.17.0'
   pod 'AWSUserPoolsSignIn'

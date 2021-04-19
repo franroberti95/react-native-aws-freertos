@@ -34,7 +34,12 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "ble",
+    "bluetooth",
+    "wifi",
+    "wifi-provisioning",
+    "wifi provisioning"
   ],
   "repository": "https://github.com/franroberti95/react-native-aws-freertos",
   "author": "franco <franroberti95@gmail.com> (https://github.com/franroberti95)",

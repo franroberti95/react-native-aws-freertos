@@ -6,6 +6,8 @@
 
 RCT_EXTERN_METHOD(startScanBtDevices)
 
+RCT_EXTERN_METHOD(stopScanBtDevices)
+
 RCT_EXTERN_METHOD(requestBtPermissions:
                  (RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
@@ -24,7 +26,15 @@ RCT_EXTERN_METHOD(saveNetworkOnConnectedDevice:(String)uuid
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(getConnectedDeviceNetworks:(String)uuid
+RCT_EXTERN_METHOD(disconnectNetworkOnConnectedDevice:(String)uuid
+                  withIndex(Int)index
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+RCT_EXTERN_METHOD(getGattCharacteristicsFromServer:(String)macAddress
+                  withServiceUuidString(String)serviceUuidString)
+
+RCT_EXTERN_METHOD(getConnectedDeviceAvailableNetworks:(String)uuid
                  withResolver(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 

@@ -2,6 +2,21 @@ import Foundation
 import AmazonFreeRTOS
 import AWSMobileClient
 
+
+enum EventsEnum: String {
+    case DID_UPDATE_BLE_POWER_STATE = "DID_UPDATE_BLE_POWER_STATE"
+    case DID_DISCONNECT_DEVICE = "DID_DISCONNECT_DEVICE"
+    case DID_DISCOVERED_DEVICE = "DID_DISCOVERED_DEVICE"
+    case DID_CONNECT_DEVICE = "DID_CONNECT_DEVICE"
+    case DID_FAIL_TO_CONNECT_DEVICE = "DID_FAIL_TO_CONNECT_DEVICE"
+    case DID_READ_CHARACTERISTIC_FROM_SERVICE = "DID_READ_CHARACTERISTIC_FROM_SERVICE"
+    case DID_LIST_NETWORK = "DID_LIST_NETWORK"
+    case DID_SAVE_NETWORK = "DID_SAVE_NETWORK"
+    case DID_EDIT_NETWORK = "DID_EDIT_NETWORK"
+    case DID_DELETE_NETWORK = "DID_DELETE_NETWORK"
+}
+
+
 @objc(AwsFreertos)
 class AwsFreertos: RCTEventEmitter {
     
@@ -10,16 +25,16 @@ class AwsFreertos: RCTEventEmitter {
     @objc
     override func supportedEvents() -> [String]! {
         return [
-            EventsEnum.DID_DISCOVERED_DEVICE,
-            EventsEnum.DID_CONNECT_DEVICE,
-            EventsEnum.DID_DELETE_NETWORK,
-            EventsEnum.DID_DISCONNECT_DEVICE,
-            EventsEnum.DID_EDIT_NETWORK,
-            EventsEnum.DID_FAIL_TO_CONNECT_DEVICE,
-            EventsEnum.DID_LIST_NETWORK,
-            EventsEnum.DID_READ_CHARACTERISTIC_FROM_SERVICE,
-            EventsEnum.DID_SAVE_NETWORK,
-            EventsEnum.DID_UPDATE_BLE_POWER_STATE
+            EventsEnum.DID_DISCOVERED_DEVICE.rawValue,
+            EventsEnum.DID_CONNECT_DEVICE.rawValue,
+            EventsEnum.DID_DELETE_NETWORK.rawValue,
+            EventsEnum.DID_DISCONNECT_DEVICE.rawValue,
+            EventsEnum.DID_EDIT_NETWORK.rawValue,
+            EventsEnum.DID_FAIL_TO_CONNECT_DEVICE.rawValue,
+            EventsEnum.DID_LIST_NETWORK.rawValue,
+            EventsEnum.DID_READ_CHARACTERISTIC_FROM_SERVICE.rawValue,
+            EventsEnum.DID_SAVE_NETWORK.rawValue,
+            EventsEnum.DID_UPDATE_BLE_POWER_STATE.rawValue
         ];
     }
     
@@ -47,44 +62,47 @@ class AwsFreertos: RCTEventEmitter {
         
         resolve("OK")
     }
-    
+
+    @objc(didEditNetwork)
+    func didEditNetwork() -> Void {
+        self.sendEvent(withName:EventsEnum.DID_EDIT_NETWORK.rawValue, body: "NETWORK EDITED");
+    }
+
+    @objc(didDeleteNetwork)
+    func didDeleteNetwork() -> Void {
+        self.sendEvent(withName:EventsEnum.DID_DELETE_NETWORK.rawValue, body: "NETWORK DELETED");
+    }
     
     @objc(didFailToConnectDevice)
     func didFailToConnectDevice() -> Void {
-        self.sendEvent(withName:EventsEnum.DID_FAIL_TO_CONNECT_DEVICE, body: "FAIL");
+        self.sendEvent(withName:EventsEnum.DID_FAIL_TO_CONNECT_DEVICE.rawValue, body: "FAIL");
     }
     
     @objc(didSaveNetwork)
     func didSaveNetwork() -> Void {
         let result: NSMutableDictionary = [:]
-        result["macAddr"] = lastConnectedDevice.peripheral.identifier.uuidString
-        result["name"] = lastConnectedDevice.peripheral.name
-        self.sendEvent(withName:EventsEnum.DID_DISCONNECT_DEVICE, body: result);
-        self.sendEvent(withName:EventsEnum.DID_SAVE_NETWORK, body: "FAIL");
-    }
-    
-    @objc(didFailToConnectDevice)
-    func didFailToConnectDevice() -> Void {
-        self.sendEvent(withName:EventsEnum.DID_FAIL_TO_CONNECT_DEVICE, body: "FAIL");
+        result["macAddr"] = lastConnectedDevice!.peripheral.identifier.uuidString
+        result["name"] = lastConnectedDevice!.peripheral.name
+        self.sendEvent(withName:EventsEnum.DID_SAVE_NETWORK.rawValue, body: result);
     }
     
     @objc(didConnectDevice)
     func didConnectDevice() -> Void {
         let result: NSMutableDictionary = [:]
-        result["macAddr"] = lastConnectedDevice?.peripheral.identifier.uuidString
-        result["name"] = lastConnectedDevice?.peripheral.name
-        self.sendEvent(withName:EventsEnum.DID_CONNECT_DEVICE, body: result);
+        result["macAddr"] = lastConnectedDevice!.peripheral.identifier.uuidString
+        result["name"] = lastConnectedDevice!.peripheral.name
+        self.sendEvent(withName:EventsEnum.DID_CONNECT_DEVICE.rawValue, body: result);
     }
     
     @objc(didDisconnectDevice)
     func didDisconnectDevice() -> Void {
-        if(lastConnectedDevice){
+        if(lastConnectedDevice != nil){
             let result: NSMutableDictionary = [:]
-            result["macAddr"] = lastConnectedDevice.peripheral.identifier.uuidString
-            result["name"] = lastConnectedDevice.peripheral.name
-            self.sendEvent(withName:EventsEnum.DID_DISCONNECT_DEVICE, body: result);
+            result["macAddr"] = lastConnectedDevice!.peripheral.identifier.uuidString
+            result["name"] = lastConnectedDevice!.peripheral.name
+            self.sendEvent(withName:EventsEnum.DID_DISCONNECT_DEVICE.rawValue, body: result);
         }else{
-            self.sendEvent(withName:EventsEnum.DID_DISCONNECT_DEVICE, body: "A device dcted");
+            self.sendEvent(withName:EventsEnum.DID_DISCONNECT_DEVICE.rawValue, body: "A device has been disconnected");
         }
     }
     
@@ -92,7 +110,7 @@ class AwsFreertos: RCTEventEmitter {
     func didUpdateState() -> Void {
         let result: NSMutableDictionary = [:]
         result["powered"] = AmazonFreeRTOSManager.shared.central?.state == .poweredOn
-        self.sendEvent(withName:EventsEnum.DID_UPDATE_BLE_POWER_STATE, body: result);
+        self.sendEvent(withName:EventsEnum.DID_UPDATE_BLE_POWER_STATE.rawValue, body: result);
     }
     
     @objc(receivedBtDevice)
@@ -105,7 +123,7 @@ class AwsFreertos: RCTEventEmitter {
             auxDic["name"] = item.peripheral.name
             result.add(auxDic)
         }
-        self.sendEvent(withName:EventsEnum.DID_DISCOVERED_DEVICE, body: result);
+        self.sendEvent(withName:EventsEnum.DID_DISCOVERED_DEVICE.rawValue, body: result);
     }
     
     @objc(startScanBtDevices)
@@ -115,6 +133,11 @@ class AwsFreertos: RCTEventEmitter {
             return
         }
 
+        AmazonFreeRTOSManager.shared.stopScanForDevices()
+    }
+    
+    @objc(stopScanBtDevices)
+    func stopScanBtDevices() -> Void {
         AmazonFreeRTOSManager.shared.stopScanForDevices()
     }
     
@@ -144,7 +167,7 @@ class AwsFreertos: RCTEventEmitter {
             
               result.add(yourAuxDic)
             }
-            self.sendEvent(withName:EventsEnum.DID_LIST_NETWORK, body: result);
+            self.sendEvent(withName:EventsEnum.DID_LIST_NETWORK.rawValue, body: result);
         }
     }
     
@@ -172,6 +195,16 @@ class AwsFreertos: RCTEventEmitter {
         }
     }
     
+    
+    @objc(getGattCharacteristicsFromServer:withServiceUuidString:)
+    func getGattCharacteristicsFromServer(_ macAddress: String, serviceUuid: String) -> Void {
+    }
+    
+    @objc(disconnectNetworkOnConnectedDevice:withIndex:withResolver:withRejecter:)
+    func disconnectNetworkOnConnectedDevice(_ uuid: String, index: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
+        resolve("OK")
+    }
+    
     @objc(saveNetworkOnConnectedDevice:widthBssid:withPw:withResolver:withRejecter:)
     func saveNetworkOnConnectedDevice(_ uuid: String, bssid: String, pw: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
         
@@ -193,8 +226,8 @@ class AwsFreertos: RCTEventEmitter {
         }
     }
     
-    @objc(getConnectedDeviceNetworks:withResolver:withRejecter:)
-    func getConnectedDeviceNetworks(_ uuid: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
+    @objc(getConnectedDeviceAvailableNetworks:withResolver:withRejecter:)
+    func getConnectedDeviceAvailableNetworks(_ uuid: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
         let devices = Array(AmazonFreeRTOSManager.shared.devices.values)
         if let device = devices.first(where: {$0.peripheral.identifier.uuidString == uuid}) {
             device.listNetwork(ListNetworkReq(maxNetworks: 10, timeout: 3))
