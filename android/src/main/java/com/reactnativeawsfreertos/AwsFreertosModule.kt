@@ -125,14 +125,16 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
 
   @ReactMethod
   fun disconnectDevice(macAddr: String, promise: Promise) {
-    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
-    val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
-    if(connectedDevice == null){
-      promise.reject(Error("No device connected found for mac: $macAddr"));
-      return
+    mHandler.post {
+      val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
+      val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
+      if(connectedDevice == null){
+        promise.reject(Error("No device connected found for mac: $macAddr"));
+      }else{
+        mAmazonFreeRTOSManager.disconnectFromDevice(connectedDevice)
+        promise.resolve("OK");
+      }
     }
-    mAmazonFreeRTOSManager.disconnectFromDevice(connectedDevice)
-    promise.resolve("OK");
   }
 
   private fun networkResponseToWritableMap(response: ListNetworkResp): WritableMap {
@@ -161,23 +163,25 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
       }
     }
     override fun onSaveNetworkResponse(response: SaveNetworkResp?) {
-      Log.i("DEVICE", "Network saved ! status: " + response.toString())
+      mHandler.post {
 
-      if(response.toString() != "SaveNetworkResponse ->\n status: 0"){
-        sendEvent(WifiEvents.ERROR_SAVE_NETWORK.name,null)
-        return;
-      }
+        Log.i("DEVICE", "Network saved ! status: " + response.toString())
 
-      if(lastConnectedWifiInfo != null){
-        val resultData: WritableMap = WritableNativeMap()
-        resultData.putString("status", response.toString())// 0 for success
-        resultData.putString("ssid", lastConnectedWifiInfo!!.ssid)
-        resultData.putString("bssid", bssidToString(lastConnectedWifiInfo!!.bssid))
-        resultData.putInt("rssi", lastConnectedWifiInfo!!.rssi)
-        resultData.putInt("security", lastConnectedWifiInfo!!.networkType)
-        resultData.putInt("index", lastConnectedWifiInfo!!.index)
-        resultData.putBoolean("connected", lastConnectedWifiInfo!!.connected)
-        sendEvent(WifiEvents.DID_SAVE_NETWORK.name,resultData)
+        if (response.toString() != "SaveNetworkResponse ->\n status: 0") {
+          sendEvent(WifiEvents.ERROR_SAVE_NETWORK.name, null)
+        }else{
+          if (lastConnectedWifiInfo != null) {
+            val resultData: WritableMap = WritableNativeMap()
+            resultData.putString("status", response.toString())// 0 for success
+            resultData.putString("ssid", lastConnectedWifiInfo!!.ssid)
+            resultData.putString("bssid", bssidToString(lastConnectedWifiInfo!!.bssid))
+            resultData.putInt("rssi", lastConnectedWifiInfo!!.rssi)
+            resultData.putInt("security", lastConnectedWifiInfo!!.networkType)
+            resultData.putInt("index", lastConnectedWifiInfo!!.index)
+            resultData.putBoolean("connected", lastConnectedWifiInfo!!.connected)
+            sendEvent(WifiEvents.DID_SAVE_NETWORK.name, resultData)
+          }
+        }
       }
     }
 
@@ -194,38 +198,41 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
   private var lastConnectedWifiInfo: WifiInfo? = null
   @ReactMethod
   fun saveNetworkOnConnectedDevice(macAddr: String, bssid: String, pw: String, promise: Promise) {
-    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
-    val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
-    val saveNetworkReq = SaveNetworkReq();
-    val wifiInfo = mBssid2WifiInfoMap[bssid];
-    if(wifiInfo == null) {
-      promise.reject(Error("INVALID BSSID"))
-      return
+      val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
+      val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
+      val saveNetworkReq = SaveNetworkReq();
+      val wifiInfo = mBssid2WifiInfoMap[bssid];
+      if(wifiInfo == null) {
+        promise.reject(Error("INVALID BSSID"))
+      }else{
+        saveNetworkReq.ssid = wifiInfo.ssid;
+        saveNetworkReq.bssid = wifiInfo.bssid;
+        saveNetworkReq.security = wifiInfo.networkType;
+        saveNetworkReq.index = wifiInfo.index;
+        saveNetworkReq.psk = pw;
+
+        lastConnectedWifiInfo = wifiInfo
+      mHandler.postDelayed({
+        connectedDevice?.saveNetwork(saveNetworkReq, mNetworkConfigCallback)
+      },300)
     }
-
-    saveNetworkReq.ssid = wifiInfo.ssid;
-    saveNetworkReq.bssid = wifiInfo.bssid;
-    saveNetworkReq.security = wifiInfo.networkType;
-    saveNetworkReq.index = wifiInfo.index;
-    saveNetworkReq.psk = pw;
-
-    lastConnectedWifiInfo = wifiInfo
-    connectedDevice?.saveNetwork(saveNetworkReq, mNetworkConfigCallback)
   }
 
   @ReactMethod
   fun disconnectNetworkOnConnectedDevice(macAddr: String, index: Int) {
-    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
-    val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
+    mHandler.post {
+      val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
+      val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
 
-    val deleteNetworkReq = DeleteNetworkReq()
-    deleteNetworkReq.index = index
-    if (connectedDevice != null) {
-      mHandler.post {
-        connectedDevice.deleteNetwork(deleteNetworkReq, mNetworkConfigCallback)
+      val deleteNetworkReq = DeleteNetworkReq()
+      deleteNetworkReq.index = index
+      if (connectedDevice != null) {
+        mHandler.post {
+          connectedDevice.deleteNetwork(deleteNetworkReq, mNetworkConfigCallback)
+        }
+      } else {
+        Log.e("DISCONNECT NETWORK", "Device is not found. $macAddr")
       }
-    } else {
-      Log.e("DISCONNECT NETWORK", "Device is not found. $macAddr")
     }
   }
 
@@ -251,16 +258,18 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
 
   @ReactMethod
   fun getConnectedDeviceAvailableNetworks(macAddr: String) {
-    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
-    val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
-    val mDevice = connectedDevice;
+    mHandler.post {
+      val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
+      val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
+      val mDevice = connectedDevice;
 
-    val listNetworkReq = ListNetworkReq()
-    listNetworkReq.maxNetworks = 20
-    listNetworkReq.timeout = 5
+      val listNetworkReq = ListNetworkReq()
+      listNetworkReq.maxNetworks = 20
+      listNetworkReq.timeout = 5
 
-    mDevice?.listNetworks(listNetworkReq, mNetworkConfigCallback)
-      ?: Log.e("ERR: ", "No device connected.")
+      mDevice?.listNetworks(listNetworkReq, mNetworkConfigCallback)
+        ?: Log.e("ERR: ", "No device connected.")
+    }
   }
 
   @ReactMethod
@@ -290,72 +299,74 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
   var readQueue: ArrayList<BluetoothGattCharacteristic>? = null
   @ReactMethod
   fun getGattCharacteristicsFromServer(macAddr: String, serviceUuidString: String) {
-    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
-    val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
+      val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
+      val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr);
 
-    val mGattCallback: BluetoothGattCallback = object : BluetoothGattCallback() {
-      override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
-        mHandler.post {
-          val service = gatt?.getService(UUID.fromString(serviceUuidString))
+      val mGattCallback: BluetoothGattCallback = object : BluetoothGattCallback() {
+        override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
+          mHandler.post {
+            val service = gatt?.getService(UUID.fromString(serviceUuidString))
 
-          readQueueIndex= 0
-          readQueue = ArrayList<BluetoothGattCharacteristic>()
+            readQueueIndex= 0
+            readQueue = ArrayList<BluetoothGattCharacteristic>()
 
-          if(service != null) {
-            for (mCharacteristic in service.getCharacteristics()) {
-              Log.i("DEVICE", "Found Characteristic: " + mCharacteristic.uuid.toString())
-              Log.i("DEVICE", "Found Characteristic val: " + mCharacteristic.value)
-              readQueue?.add(mCharacteristic)
+            if(service != null) {
+              for (mCharacteristic in service.getCharacteristics()) {
+                Log.i("DEVICE", "Found Characteristic: " + mCharacteristic.uuid.toString())
+                Log.i("DEVICE", "Found Characteristic val: " + mCharacteristic.value)
+                readQueue?.add(mCharacteristic)
+              }
+              readQueueIndex = readQueue!!.size - 1
+              gatt.readCharacteristic(readQueue!!.get(readQueueIndex))
             }
-            readQueueIndex = readQueue!!.size - 1
-            gatt.readCharacteristic(readQueue!!.get(readQueueIndex))
           }
         }
-      }
-      override fun onCharacteristicChanged(gatt: BluetoothGatt,
-                                           characteristic: BluetoothGattCharacteristic) {
-        val responseBytes = characteristic.value
-        Log.d("DEVICE", "->->-> Characteristic uuid: " + characteristic.uuid.toString())
-        Log.d("DEVICE", "->->-> Characteristic changed for: "
-          + AmazonFreeRTOSConstants.uuidToName[characteristic.uuid.toString()]
-          + " with data: " + bytesToHexString(responseBytes))
-      }
-      override fun onCharacteristicRead(gatt: BluetoothGatt,
-                                        characteristic: BluetoothGattCharacteristic,
-                                        status: Int) {
-        Log.d("DEVICE", "->->-> onCharacteristicRead status: " + if (status == 0) "Success. " else status)
-        if (status == BluetoothGatt.GATT_SUCCESS) {
+        override fun onCharacteristicChanged(gatt: BluetoothGatt,
+                                             characteristic: BluetoothGattCharacteristic) {
           val responseBytes = characteristic.value
-          Log.d("DEVICE", "->->-> onCharacteristicRead: " + bytesToHexString(responseBytes))
-
-          val resultData: WritableMap = WritableNativeMap()
-          val valueData = WritableNativeArray()
-          for( byte in responseBytes){
-            valueData.pushInt(byte.toInt())
-          }
-          resultData.putArray("value", valueData)
-          resultData.putString("uuid",characteristic.uuid.toString())
-
-          sendEvent(BluetoothEvents.DID_READ_CHARACTERISTIC_FROM_SERVICE.name, resultData)
+          Log.d("DEVICE", "->->-> Characteristic uuid: " + characteristic.uuid.toString())
+          Log.d("DEVICE", "->->-> Characteristic changed for: "
+            + AmazonFreeRTOSConstants.uuidToName[characteristic.uuid.toString()]
+            + " with data: " + bytesToHexString(responseBytes))
         }
-        readQueue?.remove(readQueue?.get(readQueueIndex));
-        if (readQueue?.size!! >= 0) {
-          readQueueIndex--;
-          if (readQueueIndex == -1) {
-            Log.i("Read Queue: ", "Complete");
-          }
-          else {
-            Handler(Looper.getMainLooper()).post {
-              gatt.readCharacteristic(readQueue?.get(readQueueIndex))
+        override fun onCharacteristicRead(gatt: BluetoothGatt,
+                                          characteristic: BluetoothGattCharacteristic,
+                                          status: Int) {
+          mHandler.post {
+            Log.d("DEVICE", "->->-> onCharacteristicRead status: " + if (status == 0) "Success. " else status)
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+              val responseBytes = characteristic.value
+              Log.d("DEVICE", "->->-> onCharacteristicRead: " + bytesToHexString(responseBytes))
+
+              val resultData: WritableMap = WritableNativeMap()
+              val valueData = WritableNativeArray()
+              for( byte in responseBytes){
+                valueData.pushInt(byte.toInt())
+              }
+              resultData.putArray("value", valueData)
+              resultData.putString("uuid",characteristic.uuid.toString())
+
+              sendEvent(BluetoothEvents.DID_READ_CHARACTERISTIC_FROM_SERVICE.name, resultData)
+            }
+            readQueue?.remove(readQueue?.get(readQueueIndex));
+            if (readQueue?.size!! >= 0) {
+              readQueueIndex--;
+              if (readQueueIndex == -1) {
+                Log.i("Read Queue: ", "Complete");
+              }
+              else {
+                Handler(Looper.getMainLooper()).post {
+                  gatt.readCharacteristic(readQueue?.get(readQueueIndex))
+                }
+              }
             }
           }
         }
       }
-    }
-    val gattService = connectedDevice.mBluetoothDevice.connectGatt(currentActivity,false,mGattCallback)
-    mHandler.post {
+      val gattService = connectedDevice.mBluetoothDevice.connectGatt(currentActivity,false,mGattCallback)
+    mHandler.postDelayed({
       gattService.discoverServices()
-    }
+    },300)
   }
 
 }
