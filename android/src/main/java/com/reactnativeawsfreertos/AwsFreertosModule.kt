@@ -295,7 +295,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
 
     val mGattCallback: BluetoothGattCallback = object : BluetoothGattCallback() {
       override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
-        Handler(Looper.getMainLooper()).post {
+        mHandler.post {
           val service = gatt?.getService(UUID.fromString(serviceUuidString))
 
           readQueueIndex= 0
@@ -353,7 +353,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
       }
     }
     val gattService = connectedDevice.mBluetoothDevice.connectGatt(currentActivity,false,mGattCallback)
-    Handler(Looper.getMainLooper()).post {
+    mHandler.post {
       gattService.discoverServices()
     }
   }
