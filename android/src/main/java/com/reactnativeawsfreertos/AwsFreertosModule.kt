@@ -104,23 +104,26 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
 
     val connectionStatusCallback: BleConnectionStatusCallback = object : BleConnectionStatusCallback() {
       override fun onBleConnectionStatusChanged(connectionStatus: AmazonFreeRTOSConstants.BleConnectionState) {
-        if (connectionStatus == AmazonFreeRTOSConstants.BleConnectionState.BLE_INITIALIZED) {
-          val resultData: WritableMap = WritableNativeMap()
-          resultData.putString("macAddr", mBleDevice.macAddr)
-          resultData.putString("name", mBleDevice.name)
-          sendEvent(BluetoothEvents.DID_CONNECT_DEVICE.name,resultData)
-        } else if (connectionStatus == AmazonFreeRTOSConstants.BleConnectionState.BLE_DISCONNECTED) {
-          val resultData: WritableMap = WritableNativeMap()
-          resultData.putString("macAddr", mBleDevice.macAddr)
-          resultData.putString("name", mBleDevice.name)
-          sendEvent(BluetoothEvents.DID_DISCONNECT_DEVICE.name,resultData)
+        mHandler.post {
+          if (connectionStatus == AmazonFreeRTOSConstants.BleConnectionState.BLE_INITIALIZED) {
+            val resultData: WritableMap = WritableNativeMap()
+            resultData.putString("macAddr", mBleDevice.macAddr)
+            resultData.putString("name", mBleDevice.name)
+            sendEvent(BluetoothEvents.DID_CONNECT_DEVICE.name,resultData)
+          } else if (connectionStatus == AmazonFreeRTOSConstants.BleConnectionState.BLE_DISCONNECTED) {
+            val resultData: WritableMap = WritableNativeMap()
+            resultData.putString("macAddr", mBleDevice.macAddr)
+            resultData.putString("name", mBleDevice.name)
+            sendEvent(BluetoothEvents.DID_DISCONNECT_DEVICE.name,resultData)
+          }
         }
       }
     }
-
-    val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
-    mAmazonFreeRTOSManager.connectToDevice(mBleDevice.bluetoothDevice,
-      connectionStatusCallback, credentialsProvider, true)
+    mHandler.post {
+      val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
+      mAmazonFreeRTOSManager.connectToDevice(mBleDevice.bluetoothDevice,
+        connectionStatusCallback, credentialsProvider, true)
+    }
   }
 
   @ReactMethod
@@ -212,9 +215,9 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
         saveNetworkReq.psk = pw;
 
         lastConnectedWifiInfo = wifiInfo
-      mHandler.postDelayed({
-        connectedDevice?.saveNetwork(saveNetworkReq, mNetworkConfigCallback)
-      },300)
+        mHandler.postDelayed({
+          connectedDevice?.saveNetwork(saveNetworkReq, mNetworkConfigCallback)
+        },100)
     }
   }
 
@@ -227,9 +230,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
       val deleteNetworkReq = DeleteNetworkReq()
       deleteNetworkReq.index = index
       if (connectedDevice != null) {
-        mHandler.post {
-          connectedDevice.deleteNetwork(deleteNetworkReq, mNetworkConfigCallback)
-        }
+        connectedDevice.deleteNetwork(deleteNetworkReq, mNetworkConfigCallback)
       } else {
         Log.e("DISCONNECT NETWORK", "Device is not found. $macAddr")
       }
@@ -366,7 +367,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
       val gattService = connectedDevice.mBluetoothDevice.connectGatt(currentActivity,false,mGattCallback)
     mHandler.postDelayed({
       gattService.discoverServices()
-    },300)
+    },100)
   }
 
 }
