@@ -49,10 +49,12 @@ const BluetoothScreen = ({ navigation }) => {
           eventKeys.DID_CONNECT_DEVICE,
           (device: BtDevice) => {
             setConnectingToDevice(false);
-            //navigation.navigate(routes.wifiScreen, {
-            //  deviceMacAddress: device.macAddr,
-            //  deviceName: device.name,
-            //});
+            setTimeout(()=>{
+              navigation.navigate(routes.wifiScreen, {
+                  deviceMacAddress: device.macAddr,
+                  deviceName: device.name,
+                });
+            },5000)
           }
         )
       );

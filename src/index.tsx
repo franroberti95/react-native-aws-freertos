@@ -13,6 +13,7 @@ type AwsFreertosType = {
     pw: string
   ): Promise<any>;
   getConnectedDeviceAvailableNetworks(macAddress: string): Promise<WifiInfo[]>;
+  triggerDidListNetwork(): void;
   getConnectedDeviceSavedNetworks(macAddress: string): Promise<WifiInfo[]>;
   getGattCharacteristicsFromServer(
     macAddress: string,

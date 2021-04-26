@@ -40,7 +40,13 @@ const WifiScreen = ({ route, navigation }) => {
 
   React.useEffect(() => {
     try {
-      AwsFreertos.getConnectedDeviceAvailableNetworks(deviceMacAddress);
+      let interval = setInterval(
+        () => {
+          AwsFreertos.getConnectedDeviceAvailableNetworks(deviceMacAddress)
+          //AwsFreertos.triggerDidListNetwork()
+        },
+        4000
+      );
       setIsScanningDeviceWifiNetworks(true);
       const eventEmitter = new NativeEventEmitter(NativeModules.AwsFreertos);
       const wifiEvents: EmitterSubscription[] = [];
@@ -49,7 +55,10 @@ const WifiScreen = ({ route, navigation }) => {
         eventEmitter.addListener(
           eventKeys.DID_LIST_NETWORK,
           (network: WifiInfo) => {
-            wifiAvailableScannedNetworks.push(network);
+            console.log(network);
+            if (Array.isArray(network))
+              network.forEach((net) => wifiAvailableScannedNetworks.push(net));
+            else wifiAvailableScannedNetworks.push(network);
           }
         )
       );
@@ -57,7 +66,7 @@ const WifiScreen = ({ route, navigation }) => {
         eventEmitter.addListener(
           eventKeys.DID_SAVE_NETWORK,
           (wifi: WifiInfo) => {
-            setErrorSavingNetwork(false)
+            setErrorSavingNetwork(false);
             navigation.navigate(routes.successScreen, {
               deviceMacAddress,
               wifiSsid: wifi && wifi.ssid,
@@ -90,6 +99,7 @@ const WifiScreen = ({ route, navigation }) => {
       }, 2000);
 
       return () => {
+        clearInterval(interval);
         clearInterval(wifiInterval);
         wifiEvents.forEach((event) => event.remove());
       };
@@ -121,7 +131,7 @@ const WifiScreen = ({ route, navigation }) => {
       {isScanningDeviceWifiNetworks && <Text>Scanning wifi networks</Text>}
       <Text>Wifi available networks</Text>
       {availableWifiNetworks && availableWifiNetworks.length > 0 && (
-        <ScrollView style={{ height: 250 }}>
+        <ScrollView style={{ height: 350, borderBottomWidth: 1, borderColor: 'red' }}>
           {availableWifiNetworks.map((network, k) => (
             <View key={network.bssid}>
               <View key={network.bssid} style={styles.networkTextContainer}>
