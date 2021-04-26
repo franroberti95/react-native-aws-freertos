@@ -55,7 +55,6 @@ class AwsFreertos: RCTEventEmitter {
         
         // Wifi - Add observe for AmazonFreeRTOSManager NSNotifications
         NotificationCenter.default.addObserver(self, selector: #selector(self.didListNetwork), name: .afrDidListNetwork, object: nil)
-        
         NotificationCenter.default.addObserver(self, selector: #selector(self.didSaveNetwork), name: .afrDidSaveNetwork, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.didEditNetwork), name: .afrDidEditNetwork, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.didDeleteNetwork), name: .afrDidDeleteNetwork, object: nil)
@@ -148,14 +147,17 @@ class AwsFreertos: RCTEventEmitter {
         AmazonFreeRTOSManager.shared.rescanForDevices()
     }
     
-    @objc
+    @objc(didListNetwork)
     func didListNetwork() {
         let result: NSMutableArray = []
     
         if(lastConnectedDevice != nil && lastConnectedDevice?.scanedNetworks != nil) {
             for item in lastConnectedDevice?.scanedNetworks ?? [] {
               let yourAuxDic: NSMutableDictionary = [:]
-                yourAuxDic["bssid"] = item.bssid
+                
+                let bssidHexStr = item.bssid.map { String(format: "%02x", $0) }.joined()
+                yourAuxDic["bssid"] =  String(bssidHexStr.enumerated().map { $0 > 0 && $0 % 2 == 0 ? [":", $1] : [$1] }.joined())
+                
                 yourAuxDic["ssid"] = item.ssid
                 yourAuxDic["rssi"] = item.rssi
                 yourAuxDic["networkType"] = item.security
@@ -170,10 +172,9 @@ class AwsFreertos: RCTEventEmitter {
     
     @objc(connectDevice:withResolver:withRejecter:)
     func connectDevice(_ uuid: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
-        
         let devices = Array(AmazonFreeRTOSManager.shared.devices.values)
         if let device = devices.first(where: {$0.peripheral.identifier.uuidString == uuid}) {
-            device.connect(reconnect: true, credentialsProvider: AWSMobileClient.default())
+            device.connect(reconnect: false, credentialsProvider: AWSMobileClient.default())
             self.lastConnectedDevice = device
             resolve("OK")
             
@@ -202,9 +203,8 @@ class AwsFreertos: RCTEventEmitter {
         resolve("OK")
     }
     
-    @objc(saveNetworkOnConnectedDevice:widthBssid:withPw:withResolver:withRejecter:)
+    @objc(saveNetworkOnConnectedDevice:withBssid:withPw:withResolver:withRejecter:)
     func saveNetworkOnConnectedDevice(_ uuid: String, bssid: String, pw: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
-        
         
         let device = AmazonFreeRTOSManager.shared.devices.values.first(where: {$0.peripheral.identifier.uuidString == uuid})
         if(device == nil){
@@ -226,8 +226,9 @@ class AwsFreertos: RCTEventEmitter {
     @objc(getConnectedDeviceAvailableNetworks:withResolver:withRejecter:)
     func getConnectedDeviceAvailableNetworks(_ uuid: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
         let devices = Array(AmazonFreeRTOSManager.shared.devices.values)
+    
         if let device = devices.first(where: {$0.peripheral.identifier.uuidString == uuid}) {
-            device.listNetwork(ListNetworkReq(maxNetworks: 10, timeout: 3))
+            device.listNetwork(ListNetworkReq(maxNetworks: 10, timeout: 5))
             resolve("OK")
         } else {
             reject("ERROR_NOT_FOUND", uuid, NSError(domain: "", code: 200, userInfo: nil))
