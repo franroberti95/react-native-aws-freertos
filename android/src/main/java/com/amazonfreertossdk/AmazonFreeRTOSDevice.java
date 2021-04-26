@@ -61,6 +61,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import com.amazonfreertossdk.mqttproxy.*;
 import com.amazonfreertossdk.networkconfig.*;
+import com.reactnativeawsfreertos.ManualSaveNetworkReq;
 
 import static android.bluetooth.BluetoothDevice.BOND_BONDING;
 import static android.bluetooth.BluetoothDevice.TRANSPORT_LE;
@@ -223,6 +224,12 @@ public class AmazonFreeRTOSDevice {
         mNetworkConfigCallback = callback;
         byte[] saveNetworkReqBytes = saveNetworkReq.encode();
         sendDataToDevice(UUID_NETWORK_SERVICE, UUID_NETWORK_RX, UUID_NETWORK_RXLARGE, saveNetworkReqBytes);
+    }
+
+    public void saveNetwork(ManualSaveNetworkReq saveNetworkReq, NetworkConfigCallback callback) {
+      mNetworkConfigCallback = callback;
+      byte[] saveNetworkReqBytes = saveNetworkReq.encode();
+      sendDataToDevice(UUID_NETWORK_SERVICE, UUID_NETWORK_RX, UUID_NETWORK_RXLARGE, saveNetworkReqBytes);
     }
 
     /**
@@ -1084,7 +1091,7 @@ public class AmazonFreeRTOSDevice {
         }
     }
 
-    private void sendDataToDevice(final String service, final String rx, final String rxlarge, byte[] data) {
+    public void sendDataToDevice(final String service, final String rx, final String rxlarge, byte[] data) {
         if (data != null) {
             if (data.length < mMaxPayloadLen) {
                 sendBleCommand(new BleCommand(WRITE_CHARACTERISTIC, rx, service, data));

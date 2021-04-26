@@ -296,6 +296,16 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
       ?: Log.e("ERR: ", "No device connected.")
   }
 
+  @ReactMethod
+  fun manuallySaveNetwork(macAddr: String, ssid: String, pw: String){
+    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity)
+    val connectedDevice = mAmazonFreeRTOSManager.getConnectedDevice(macAddr)
+    val saveNetworkReq = ManualSaveNetworkReq()
+    saveNetworkReq.psk = pw
+    saveNetworkReq.ssid = ssid
+    connectedDevice.saveNetwork(saveNetworkReq,mNetworkConfigCallback)
+  }
+
   var readQueueIndex = 0
   var readQueue: ArrayList<BluetoothGattCharacteristic>? = null
   @ReactMethod

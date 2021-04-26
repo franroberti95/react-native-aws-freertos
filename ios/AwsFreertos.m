@@ -12,29 +12,29 @@ RCT_EXTERN_METHOD(requestBtPermissions:
                  (RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(connectDevice:(String)uuid
+RCT_EXTERN_METHOD(connectDevice:(NSString *)uuid
                  withResolver:(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(disconnectDevice:(String)uuid
+RCT_EXTERN_METHOD(disconnectDevice:(NSString *)uuid
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(saveNetworkOnConnectedDevice:(String)uuid
-                  withBssid(String)bssid
-                  withPw:(String)pw
+RCT_EXTERN_METHOD(saveNetworkOnConnectedDevice:(NSString *)uuid
+                  withBssid(NSString *)bssid
+                  withPw:(NSString *)pw
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(disconnectNetworkOnConnectedDevice:(String)uuid
+RCT_EXTERN_METHOD(disconnectNetworkOnConnectedDevice:(NSString *)uuid
                   withIndex(Int)index
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(getGattCharacteristicsFromServer:(String)macAddress
-                  withServiceUuidString(String)serviceUuidString)
+RCT_EXTERN_METHOD(getGattCharacteristicsFromServer:(NSString *)macAddress
+                  withServiceUuidString(NSString *)serviceUuidString)
 
-RCT_EXTERN_METHOD(getConnectedDeviceAvailableNetworks:(String)uuid
+RCT_EXTERN_METHOD(getConnectedDeviceAvailableNetworks:(NSString *)uuid
                  withResolver(RCTPromiseResolveBlock)resolve
                  withRejecter:(RCTPromiseRejectBlock)reject)
 

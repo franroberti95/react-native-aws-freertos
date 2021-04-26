@@ -25,8 +25,13 @@ const BluetoothScreen = ({ navigation }) => {
 
       btEvents.push(
         eventEmitter.addListener(eventKeys.DID_DISCOVERED_DEVICE, (device) => {
-          if (result.some((r) => device.macAddr === r.macAddr)) return;
-          setResult([...result, device]);
+
+          if(Array.isArray(device)){
+            setResult([...result, ...device]);
+          }else{
+            if (result.some((r) => device.macAddr === r.macAddr)) return;
+            setResult([...result, device]);
+          }
         })
       );
       btEvents.push(
@@ -44,10 +49,10 @@ const BluetoothScreen = ({ navigation }) => {
           eventKeys.DID_CONNECT_DEVICE,
           (device: BtDevice) => {
             setConnectingToDevice(false);
-            navigation.navigate(routes.wifiScreen, {
-              deviceMacAddress: device.macAddr,
-              deviceName: device.name,
-            });
+            //navigation.navigate(routes.wifiScreen, {
+            //  deviceMacAddress: device.macAddr,
+            //  deviceName: device.name,
+            //});
           }
         )
       );
