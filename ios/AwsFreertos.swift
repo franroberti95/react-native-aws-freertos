@@ -1,7 +1,7 @@
 import Foundation
 import AmazonFreeRTOS
 import AWSMobileClient
-
+import CoreBluetooth
 
 class EventsEnum{
     static var DID_UPDATE_BLE_POWER_STATE: String = "DID_UPDATE_BLE_POWER_STATE"
@@ -21,6 +21,7 @@ class EventsEnum{
 class AwsFreertos: RCTEventEmitter {
     
     var lastConnectedDevice: AmazonFreeRTOSDevice?
+    var lastGattServiceUuid: String?
 
     @objc
     override func supportedEvents() -> [String]! {
@@ -58,9 +59,51 @@ class AwsFreertos: RCTEventEmitter {
         NotificationCenter.default.addObserver(self, selector: #selector(self.didSaveNetwork), name: .afrDidSaveNetwork, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.didEditNetwork), name: .afrDidEditNetwork, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(self.didDeleteNetwork), name: .afrDidDeleteNetwork, object: nil)
+        
+        // Characteristics
+        NotificationCenter.default.addObserver(self, selector: #selector(self.didDiscoveredCharacteristics), name: .afrPeripheralDidDiscoverCharacteristics, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(self.didDiscoveredServices), name: .afrPeripheralDidDiscoverServices, object: nil)
 
         
         resolve("OK")
+    }
+    
+    @objc(didDiscoveredServices)
+    func didDiscoveredServices() -> Void {
+        if lastConnectedDevice != nil {
+            lastConnectedDevice!.peripheral.discoverCharacteristics(nil, for: lastConnectedDevice!.peripheral.services![0])
+        }
+    }
+    
+    @objc(didDiscoveredCharacteristics)
+    func didDiscoveredCharacteristics() -> Void {
+        
+        if(lastConnectedDevice?.peripheral.services == nil || lastGattServiceUuid == nil) {
+            return
+        }
+        
+        let services = Array(lastConnectedDevice!.peripheral.services!)
+        
+        if let service = services.first(where: {$0.uuid.uuidString.uppercased() == lastGattServiceUuid!.uppercased()}) {
+            let result: NSMutableArray = []
+            if(service.characteristics != nil){
+                for item in Array(service.characteristics!) {
+                    let auxDic: NSMutableDictionary = [:]
+                    auxDic["uuid"] = item.uuid.uuidString
+                    
+                    if( item.value == nil){
+                        auxDic["value"] = [0]
+                    }else{
+                        auxDic["value"] = item.value!.map { $0 }
+                    }
+                    
+                    result.add(auxDic)
+                }
+                self.sendEvent(withName:EventsEnum.DID_READ_CHARACTERISTIC_FROM_SERVICE, body: result);
+            }
+        }
+        
     }
 
     @objc(didEditNetwork)
@@ -195,7 +238,13 @@ class AwsFreertos: RCTEventEmitter {
     
     
     @objc(getGattCharacteristicsFromServer:withServiceUuidString:)
-    func getGattCharacteristicsFromServer(_ macAddress: String, serviceUuid: String) -> Void {
+    func getGattCharacteristicsFromServer(_ uuid: String, serviceUuid: String) -> Void {
+        let devices = Array(AmazonFreeRTOSManager.shared.devices.values)
+        if let device = devices.first(where: {$0.peripheral.identifier.uuidString == uuid}) {
+            lastGattServiceUuid = serviceUuid
+            // device.peripheral.discoverServices([CBUUID(string: serviceUuid)])
+            device.peripheral.discoverServices(nil)
+        }
     }
     
     @objc(disconnectNetworkOnConnectedDevice:withIndex:withResolver:withRejecter:)
