@@ -93,6 +93,7 @@ class AwsFreertos: RCTEventEmitter {
                     for item in Array(service.characteristics!) {
                         let auxDic: NSMutableDictionary = [:]
                         auxDic["uuid"] = item.uuid.uuidString
+                        service.peripheral.readValue(for: item)
                         
                         if( item.value == nil){
                             auxDic["value"] = [0]
