@@ -21,6 +21,7 @@ class EventsEnum{
 class AwsFreertos: RCTEventEmitter {
     
     var lastConnectedDevice: AmazonFreeRTOSDevice?
+    var lastConnectedDeviceUuidString: String?
     var lastGattServiceUuid: String?
 
     @objc
@@ -82,28 +83,29 @@ class AwsFreertos: RCTEventEmitter {
         if(lastConnectedDevice?.peripheral.services == nil || lastGattServiceUuid == nil) {
             return
         }
+
+        if let device = Array(AmazonFreeRTOSManager.shared.devices.values).first(where: {$0.peripheral.identifier.uuidString == lastConnectedDeviceUuidString}) {
         
-        let services = Array(lastConnectedDevice!.peripheral.services!)
-        
-        if let service = services.first(where: {$0.uuid.uuidString.uppercased() == lastGattServiceUuid!.uppercased()}) {
-            let result: NSMutableArray = []
-            if(service.characteristics != nil){
-                for item in Array(service.characteristics!) {
-                    let auxDic: NSMutableDictionary = [:]
-                    auxDic["uuid"] = item.uuid.uuidString
-                    
-                    if( item.value == nil){
-                        auxDic["value"] = [0]
-                    }else{
-                        auxDic["value"] = item.value!.map { $0 }
+            let services = Array(device.peripheral.services!)
+            if let service = services.first(where: {$0.uuid.uuidString.uppercased() == lastGattServiceUuid!.uppercased()}) {
+                let result: NSMutableArray = []
+                if(service.characteristics != nil){
+                    for item in Array(service.characteristics!) {
+                        let auxDic: NSMutableDictionary = [:]
+                        auxDic["uuid"] = item.uuid.uuidString
+                        
+                        if( item.value == nil){
+                            auxDic["value"] = [0]
+                        }else{
+                            auxDic["value"] = item.value!.map { $0 }
+                        }
+                        
+                        result.add(auxDic)
                     }
-                    
-                    result.add(auxDic)
+                    self.sendEvent(withName:EventsEnum.DID_READ_CHARACTERISTIC_FROM_SERVICE, body: result);
                 }
-                self.sendEvent(withName:EventsEnum.DID_READ_CHARACTERISTIC_FROM_SERVICE, body: result);
             }
         }
-        
     }
 
     @objc(didEditNetwork)
@@ -194,7 +196,25 @@ class AwsFreertos: RCTEventEmitter {
     func didListNetwork() {
         let result: NSMutableArray = []
     
-        if(lastConnectedDevice != nil && lastConnectedDevice?.scanedNetworks != nil) {
+        if(lastConnectedDevice == nil) {
+            return
+        }
+        if(lastConnectedDevice?.savedNetworks != nil){
+            for item in lastConnectedDevice?.savedNetworks ?? [] {
+                let yourAuxDic: NSMutableDictionary = [:]
+                let bssidHexStr = item.bssid.map { String(format: "%02x", $0) }.joined()
+                yourAuxDic["bssid"] =  String(bssidHexStr.enumerated().map { $0 > 0 && $0 % 2 == 0 ? [":", $1] : [$1] }.joined())
+                
+                yourAuxDic["ssid"] = item.ssid
+                yourAuxDic["rssi"] = item.rssi
+                yourAuxDic["networkType"] = item.security
+                yourAuxDic["index"] = item.index
+                yourAuxDic["connected"] = item.connected
+                result.add(yourAuxDic)
+            }
+        }
+            
+        if(lastConnectedDevice?.scanedNetworks != nil){
             for item in lastConnectedDevice?.scanedNetworks ?? [] {
               let yourAuxDic: NSMutableDictionary = [:]
                 
@@ -209,8 +229,8 @@ class AwsFreertos: RCTEventEmitter {
             
               result.add(yourAuxDic)
             }
-            self.sendEvent(withName:EventsEnum.DID_LIST_NETWORK, body: result);
         }
+        self.sendEvent(withName:EventsEnum.DID_LIST_NETWORK, body: result);
     }
     
     @objc(connectDevice:withResolver:withRejecter:)
@@ -219,6 +239,7 @@ class AwsFreertos: RCTEventEmitter {
         if let device = devices.first(where: {$0.peripheral.identifier.uuidString == uuid}) {
             device.connect(reconnect: false, credentialsProvider: AWSMobileClient.default())
             self.lastConnectedDevice = device
+            self.lastConnectedDeviceUuidString = uuid
             resolve("OK")
             
         } else {
@@ -248,8 +269,13 @@ class AwsFreertos: RCTEventEmitter {
     }
     
     @objc(disconnectNetworkOnConnectedDevice:withIndex:withResolver:withRejecter:)
-    func disconnectNetworkOnConnectedDevice(_ uuid: String, index: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
-        resolve("OK")
+    func disconnectNetworkOnConnectedDevice(_ uuid: String, index: Int, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
+        
+        let device = AmazonFreeRTOSManager.shared.devices.values.first(where: {$0.peripheral.identifier.uuidString == uuid})
+        if(device == nil){
+            reject("ERROR_NOT_FOUND", uuid, NSError(domain: "", code: 200, userInfo: nil))
+        }
+        device?.deleteNetwork(DeleteNetworkReq(index: index))
     }
     
     @objc(saveNetworkOnConnectedDevice:withBssid:withPw:withResolver:withRejecter:)
@@ -260,11 +286,26 @@ class AwsFreertos: RCTEventEmitter {
             reject("ERROR_NOT_FOUND", uuid, NSError(domain: "", code: 200, userInfo: nil))
         }
         
-        let networks = device?.scanedNetworks
+        var networks = device?.scanedNetworks
         
-        if let network = networks?.first(where: {String(($0.bssid.map { String(format: "%02x", $0) }.joined()).enumerated().map { $0 > 0 && $0 % 2 == 0 ? [":", $1] : [$1] }.joined()) == bssid}) {
-            
-            device?.saveNetwork(SaveNetworkReq(index: network.index, ssid: network.ssid, bssid: network.bssid, psk: pw, security: network.security, connect: true))
+        if(networks == nil){
+            return
+        }
+        
+        if(device?.savedNetworks != nil){
+            networks?.append(contentsOf: device?.savedNetworks ?? [])
+        }
+        
+        var networksDict: [String:ListNetworkResp] = [:]
+        for net in networks! {
+            let bssidHexStr = net.bssid.map { String(format: "%02x", $0) }.joined()
+            let bssidStr =  String(bssidHexStr.enumerated().map { $0 > 0 && $0 % 2 == 0 ? [":", $1] : [$1] }.joined())
+            networksDict[bssidStr] = net
+        }
+        
+        let network = networksDict[bssid]
+        if (network != nil) {
+            device?.saveNetwork(SaveNetworkReq(index: network!.index, ssid: network!.ssid, bssid: network!.bssid, psk: pw, security: network!.security, connect: true))
             
             resolve("OK")
         } else {

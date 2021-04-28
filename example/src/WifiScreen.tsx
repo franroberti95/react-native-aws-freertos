@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AwsFreertos, { eventKeys, WifiInfo } from 'react-native-aws-freertos';
+import AwsFreertos, { Characteristic, eventKeys, WifiInfo } from 'react-native-aws-freertos';
 import {
   Alert,
   Button,
@@ -43,14 +43,19 @@ const WifiScreen = ({ route, navigation }) => {
       let interval = setInterval(
         () => {
           AwsFreertos.getConnectedDeviceAvailableNetworks(deviceMacAddress)
-          //AwsFreertos.triggerDidListNetwork()
+          AwsFreertos.getGattCharacteristicsFromServer(deviceMacAddress, "ad3cee4a-c6d0-4b38-aed6-5459813c5847")
         },
-        4000
+        10000
       );
       setIsScanningDeviceWifiNetworks(true);
       const eventEmitter = new NativeEventEmitter(NativeModules.AwsFreertos);
       const wifiEvents: EmitterSubscription[] = [];
-
+      const readCharacteristicsEvent = eventEmitter.addListener(
+        eventKeys.DID_READ_CHARACTERISTIC_FROM_SERVICE,
+        (newCharacteristic: Characteristic) => {
+          console.log('Reading characteristic: ', newCharacteristic);
+        }
+      );
       wifiEvents.push(
         eventEmitter.addListener(
           eventKeys.DID_LIST_NETWORK,
@@ -101,6 +106,7 @@ const WifiScreen = ({ route, navigation }) => {
       return () => {
         clearInterval(interval);
         clearInterval(wifiInterval);
+        readCharacteristicsEvent.remove();
         wifiEvents.forEach((event) => event.remove());
       };
     } catch (e) {

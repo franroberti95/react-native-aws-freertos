@@ -20,14 +20,16 @@ RCT_EXTERN_METHOD(disconnectDevice:(NSString *)uuid
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(saveNetworkOnConnectedDevice:(NSString *)uuid
-                  withBssid(NSString *)bssid
+RCT_EXTERN_METHOD(saveNetworkOnConnectedDevice:
+                  (NSString *)uuid
+                  withBssid:(NSString *)bssid
                   withPw:(NSString *)pw
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(disconnectNetworkOnConnectedDevice:(NSString *)uuid
-                  withIndex(Int)index
+RCT_EXTERN_METHOD(disconnectNetworkOnConnectedDevice:
+                  (NSString *)uuid
+                  withIndex:(NSInteger)index
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
