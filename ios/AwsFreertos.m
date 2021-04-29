@@ -37,6 +37,12 @@ RCT_EXTERN_METHOD(getGattCharacteristicsFromServer:
                   (NSString *)macAddress
                   withServiceUuidString:(NSString *)serviceUuidString)
 
+RCT_EXTERN_METHOD(deviceIsConnected:
+                  (NSString *)uuid
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
+
 RCT_EXTERN_METHOD(getConnectedDeviceAvailableNetworks:
                   (NSString *)uuid
                   withResolver:(RCTPromiseResolveBlock)resolve

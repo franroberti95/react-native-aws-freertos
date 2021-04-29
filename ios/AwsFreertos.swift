@@ -77,6 +77,16 @@ class AwsFreertos: RCTEventEmitter {
         }
     }
     
+    
+    @objc(deviceIsConnected:withResolver:withRejecter:)
+    func deviceIsConnected(_ uuid: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
+        let device = AmazonFreeRTOSManager.shared.devices.values.first(where: {$0.peripheral.identifier.uuidString == uuid})
+        if(device == nil){
+            reject("ERROR_NOT_FOUND", uuid, NSError(domain: "", code: 200, userInfo: nil))
+        }
+        resolve(device?.peripheral.state == .connected)
+    }
+    
     @objc(didDiscoveredCharacteristics)
     func didDiscoveredCharacteristics() -> Void {
         

@@ -6,7 +6,10 @@ type AwsFreertosType = {
   requestBtPermissions(): Promise<any>;
   connectDevice(macAddress: string): Promise<any>;
   disconnectDevice(macAddress: string): Promise<any>;
-  disconnectNetworkOnConnectedDevice(macAddress: string, index: number): Promise<any>;
+  disconnectNetworkOnConnectedDevice(
+    macAddress: string,
+    index: number
+  ): Promise<any>;
   saveNetworkOnConnectedDevice(
     macAddress: string,
     bssid: string,
@@ -15,6 +18,7 @@ type AwsFreertosType = {
   getConnectedDeviceAvailableNetworks(macAddress: string): Promise<WifiInfo[]>;
   triggerDidListNetwork(): void;
   getConnectedDeviceSavedNetworks(macAddress: string): Promise<WifiInfo[]>;
+  deviceIsConnected(macAddress: string): Promise<boolean> /*Only ios*/;
   getGattCharacteristicsFromServer(
     macAddress: string,
     serviceUuidString: string
