@@ -6,6 +6,18 @@ React native aws freertos bridge
 
 ```sh
 npm install react-native-aws-freertos
+cd ios && pod install
+```
+Open the ios project with xcode and run from there to a physical device, since npx react-native-run ios will open in the simulator and it wont connect to any bt device.
+
+Add this to your Podfile
+```
+  use_frameworks! :linkage => :static
+  pod 'AmazonFreeRTOS'
+  pod 'AWSAuthUI'
+  pod 'AWSMobileClient','~> 2.17.0'
+  pod 'AWSUserPoolsSignIn'
+  pod 'react-native-aws-freertos', :path => '../node_modules/react-native-aws-freertos'
 ```
 
 ## Usage
@@ -66,18 +78,6 @@ export const events = {
   DID_EDIT_NETWORK: 'DID_EDIT_NETWORK',
   DID_DELETE_NETWORK: 'DID_DELETE_NETWORK',
 };
-```
-
-## Podfile
-
-
-```
-  use_frameworks! :linkage => :static
-  pod 'AmazonFreeRTOS'
-  pod 'AWSAuthUI'
-  pod 'AWSMobileClient','~> 2.17.0'
-  pod 'AWSUserPoolsSignIn'
-  pod 'react-native-aws-freertos', :path => '../node_modules/react-native-aws-freertos'
 ```
 
 ## Contributing
