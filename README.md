@@ -68,6 +68,17 @@ export const events = {
 };
 ```
 
+## Podfile
+
+
+```
+  use_frameworks! :linkage => :static
+  pod 'AmazonFreeRTOS'
+  pod 'AWSAuthUI'
+  pod 'AWSMobileClient','~> 2.17.0'
+  pod 'AWSUserPoolsSignIn'
+  pod 'react-native-aws-freertos', :path => '../node_modules/react-native-aws-freertos'
+```
 
 ## Contributing
 
