@@ -20,6 +20,13 @@ Add this to your Podfile
   pod 'react-native-aws-freertos', :path => '../node_modules/react-native-aws-freertos'
 ```
 
+Make sure you add bt permissions keys to your Info.plist
+
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>The app needs access to Bluetooth</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>We need to acces BLE to update the device</string>
+  
 ## Usage
 
 ```js
