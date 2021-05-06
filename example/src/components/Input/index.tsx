@@ -1,20 +1,9 @@
-import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import React, {useState} from 'react';
+import {ActivityIndicator, Text, TextInput, View} from 'react-native';
+import EStyleSheet from 'react-native-extended-stylesheet';
 import CustomTouchable from '../CustomTouchable';
-
-const EyeActive = () => (
-  <Text>0</Text>
-);
-
-const EyeInactive = () => (
-  <Text>1</Text>
-);
+const EyeActive = () => <Text>show</Text>;
+const EyeInactive = () => <Text>hide</Text>;
 
 interface InputInterface {
   loading?: boolean;
@@ -29,80 +18,109 @@ interface InputInterface {
   inputStyles?: any;
   toggleVisibility?: boolean;
   caption?: string;
+  iconStyles: any;
 }
 
 const Input = ({
-  loading,
-  value,
-  onChangeText,
-  autoFocus,
-  onFocus,
-  onBlur,
-  label,
-  rightIcon,
-  labelStyle,
-  inputStyles,
-  toggleVisibility,
-  caption,
-}: InputInterface) => {
-  const [visibilityOn, setVisibilityOn] = useState(true);
+                 loading,
+                 value,
+                 onChangeText,
+                 autoFocus,
+                 onFocus,
+                 onBlur,
+                 label,
+                 rightIcon,
+                 labelStyle,
+                 inputStyles,
+                 toggleVisibility,
+                 caption,
+                 iconStyles,
+               }: InputInterface) => {
+  const [visibilityOn, setVisibilityOn] = useState(false);
+  const [isFocused, setIsFocused] = useState(!!autoFocus);
+  const eyeIconSize = EStyleSheet.value('1.5rem');
 
-  const eyeIconSize = 24;
+  const handleFocus = () => {
+    onFocus && onFocus();
+    setIsFocused(true);
+  };
+  const handleBlur = () => {
+    onBlur && onBlur();
+    setIsFocused(false);
+  };
+
   return (
     <View style={styles.inputContainer}>
       <View style={styles.labelContainer}>
-        <Text onPress={onFocus} style={[styles.labelStyle, labelStyle]}>
+        <Text onPress={handleFocus} style={[styles.labelStyle, labelStyle, loading ? styles.disabledColor: {}]}>
           {label}
         </Text>
-        {loading && <ActivityIndicator />}
+        {loading && <ActivityIndicator color={EStyleSheet.value("$offWhite")}/>}
       </View>
-      <TextInput
-        style={[styles.input, inputStyles]}
-        value={value}
-        onChangeText={onChangeText}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        autoFocus={autoFocus}
-        secureTextEntry={visibilityOn}
-      />
-      {caption && <Text style={styles.caption}>{caption}</Text>}
-      <CustomTouchable
-        style={styles.rightIconContainer}
-        onPress={toggleVisibility ? () => setVisibilityOn(!visibilityOn) : null}
-      >
-        {toggleVisibility ? (
-          visibilityOn ? (
-            <EyeActive
-              width={eyeIconSize}
-              height={eyeIconSize}
-              fill={'white'}
-            />
+      <View style={[styles.textContainer, isFocused?styles.focused:{}]}>
+        <TextInput
+          editable={!loading}
+          style={[styles.input, inputStyles, loading ? styles.disabledColor: {}]}
+          value={value}
+          onChangeText={onChangeText}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          autoFocus={autoFocus}
+          secureTextEntry={visibilityOn}
+        />
+        <CustomTouchable
+          style={[styles.rightIconContainer, iconStyles]}
+          onPress={
+            toggleVisibility ? () => setVisibilityOn(!visibilityOn) : null
+          }>
+          {toggleVisibility ? (
+            visibilityOn ? (
+              <EyeActive
+                width={eyeIconSize}
+                height={eyeIconSize}
+                fill={loading? "grey":EStyleSheet.value('$offWhite')}
+              />
+            ) : (
+              <EyeInactive
+                width={eyeIconSize}
+                height={eyeIconSize}
+                fill={loading? "grey":EStyleSheet.value('$offWhite')}
+              />
+            )
           ) : (
-            <EyeInactive
-              width={eyeIconSize}
-              height={eyeIconSize}
-              fill={'black'}
-            />
-          )
-        ) : (
-          rightIcon
-        )}
-      </CustomTouchable>
+            rightIcon
+          )}
+        </CustomTouchable>
+      </View>
+      {caption && <Text style={styles.caption}>{caption}</Text>}
     </View>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = EStyleSheet.create({
   inputContainer: {
     position: 'relative',
     width: '100%',
+  },
+  disabledColor: {
+    color: 'grey',
+    borderColor: 'grey'
   },
   input: {
     borderBottomWidth: 1,
     borderColor: 'black',
     color: 'black',
     paddingVertical: 5,
-    fontSize: 16,
+    fontSize: '1rem',
+  },
+  textContainer: {
+    borderWidth: 4,
+    borderBottomWidth: 4,
+    borderRadius: 4,
+    borderColor: 'rgba(255,255,255,0.0)'
+  },
+  focused: {
+    borderColor: 'rgba(255,255,255,0.4)'
   },
   labelStyle: {
     color: 'black',
@@ -112,18 +130,20 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 20,
+    minHeight: '1.5rem',
+    marginLeft: 4
   },
   rightIconContainer: {
     position: 'absolute',
-    right: 16,
+    right: '1rem',
     top: '50%',
-    transform: [{ translateY: -(14 / 2) }],
+    transform: [{translateY: -(EStyleSheet.value('1.5rem') / 2)}],
   },
   caption: {
-    fontSize: 14,
+    fontSize: '0.875rem',
     color: 'black',
-    marginTop: 4,
+    marginTop: '0.25rem',
   },
 });
+
 export default Input;

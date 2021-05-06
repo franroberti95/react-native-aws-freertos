@@ -1,5 +1,7 @@
 export const routes = {
-  bluetoothScreen: 'BluetoothScreen',
-  wifiScreen: 'WifiScreen',
-  successScreen: 'SuccessWifiProvision'
-}
+  scanBluetoothDeviceScreen: 'ScanBluetoothDeviceScreen',
+  connectDevice: 'ConnectDeviceScreen',
+  selectWifiScreen: 'SelectWifiScreen',
+  wifiPassword: 'wifiPasswordScreen',
+  successScreen: 'SuccessWifiProvisionScreen',
+};
