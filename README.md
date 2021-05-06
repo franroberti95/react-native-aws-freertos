@@ -6,8 +6,27 @@ React native aws freertos bridge
 
 ```sh
 npm install react-native-aws-freertos
+cd ios && pod install
+```
+Open the ios project with xcode and run from there to a physical device, since npx react-native-run ios will open in the simulator and it wont connect to any bt device.
+
+Add this to your Podfile
+```
+  use_frameworks! :linkage => :static
+  pod 'AmazonFreeRTOS'
+  pod 'AWSAuthUI'
+  pod 'AWSMobileClient','~> 2.17.0'
+  pod 'AWSUserPoolsSignIn'
+  pod 'react-native-aws-freertos', :path => '../node_modules/react-native-aws-freertos'
 ```
 
+Make sure you add bt permissions keys to your Info.plist
+
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>The app needs access to Bluetooth</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>We need to acces BLE to update the device</string>
+  
 ## Usage
 
 ```js
@@ -67,7 +86,6 @@ export const events = {
   DID_DELETE_NETWORK: 'DID_DELETE_NETWORK',
 };
 ```
-
 
 ## Contributing
 
