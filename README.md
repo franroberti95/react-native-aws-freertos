@@ -10,6 +10,17 @@ cd ios && pod install
 ```
 Open the ios project with xcode and run from there to a physical device, since npx react-native-run ios will open in the simulator and it wont connect to any bt device.
 
+- Android
+Add this to your manifest file under android/app/src/main/AndroidManifest.xml
+```
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <!-- initiate device discovery and manipulate bluetooth settings -->
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <!-- allow scan BLE -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+```
+
+- IOS
 Add this to your Podfile
 ```
   use_frameworks! :linkage => :static
