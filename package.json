@@ -1,6 +1,6 @@
 {
   "name": "react-native-aws-freertos",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "React native aws freertos bridge",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -83,8 +83,7 @@
       "<rootDir>/lib/"
     ]
   },
-  "husky": {
-  },
+  "husky": {},
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
