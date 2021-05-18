@@ -36,6 +36,7 @@ const ScanDevice = observer(() => {
   };
 
   useEffect(() => {
+    AwsFreertos.requestBtPermissions();
     //Clear prev devices first
     store.clearBtDevices();
     const eventEmitter = new NativeEventEmitter(NativeModules.AwsFreertos);

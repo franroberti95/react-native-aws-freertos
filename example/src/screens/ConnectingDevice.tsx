@@ -54,8 +54,8 @@ const ConnectingDevice = observer(() => {
       }
     );
     const reconnectInterval = setInterval(() => {
-      if (store.deviceSelected)
-        AwsFreertos.connectDevice(store.deviceSelected.macAddr);
+      //if (store.deviceSelected)
+        //AwsFreertos.connectDevice(store.deviceSelected.macAddr);
     }, RECONNECT_TIMEOUT);
     return () => {
       deviceConnectedInterval && clearInterval(deviceConnectedInterval);
