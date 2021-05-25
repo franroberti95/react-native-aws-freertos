@@ -188,9 +188,14 @@ class AwsFreertos: RCTEventEmitter {
         if AmazonFreeRTOSManager.shared.central?.state == .poweredOn {
             AmazonFreeRTOSManager.shared.startScanForDevices()
             return
+        }else{
+            AmazonFreeRTOSManager.shared.stopScanForDevices()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                AmazonFreeRTOSManager.shared.startScanForDevices()
+            }
         }
-
-        AmazonFreeRTOSManager.shared.stopScanForDevices()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {                AmazonFreeRTOSManager.shared.stopScanForDevices()
+        }
     }
     
     @objc(stopScanBtDevices)
