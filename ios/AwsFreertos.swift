@@ -253,7 +253,7 @@ class AwsFreertos: RCTEventEmitter {
     func connectDevice(_ uuid: String, resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
         let devices = Array(AmazonFreeRTOSManager.shared.devices.values)
         if let device = devices.first(where: {$0.peripheral.identifier.uuidString == uuid}) {
-            device.connect(reconnect: true, credentialsProvider: AWSMobileClient.default())
+            device.connect(reconnect: false, credentialsProvider: AWSMobileClient.default())
             self.lastConnectedDevice = device
             self.lastConnectedDeviceUuidString = uuid
             resolve("OK")
