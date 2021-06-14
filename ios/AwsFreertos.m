@@ -42,6 +42,11 @@ RCT_EXTERN_METHOD(deviceIsConnected:
                   withResolver:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(getDeviceServices:
+                  (NSString *)uuid
+                  withResolver:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
 
 RCT_EXTERN_METHOD(getConnectedDeviceAvailableNetworks:
                   (NSString *)uuid

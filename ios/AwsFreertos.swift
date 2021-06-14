@@ -118,7 +118,7 @@ class AwsFreertos: RCTEventEmitter {
             }
         }
     }
-
+    
     @objc(didEditNetwork)
     func didEditNetwork() -> Void {
         self.sendEvent(withName:EventsEnum.DID_EDIT_NETWORK, body: "NETWORK EDITED");
@@ -282,6 +282,22 @@ class AwsFreertos: RCTEventEmitter {
             // device.peripheral.discoverServices([CBUUID(string: serviceUuid)])
             device.peripheral.discoverServices(nil)
         }
+    }
+    
+    
+    @objc(getDeviceServices:withResolver:withRejecter:)
+    func getDeviceServices(_ uuid: String,resolve:RCTPromiseResolveBlock,reject:RCTPromiseRejectBlock) -> Void {
+        let devices = Array(AmazonFreeRTOSManager.shared.devices.values)
+        if let device = devices.first(where: {$0.peripheral.identifier.uuidString == uuid}) {
+            device.peripheral.discoverServices(nil)
+            let auxArray: NSMutableArray = []
+            for item in device.peripheral.services ?? [] {
+                auxArray.add(item.uuid.uuidString.uppercased())
+                resolve(auxArray)
+                return
+            }
+        }
+        reject("ERROR_NOT_FOUND", uuid, NSError(domain: "", code: 200, userInfo: nil))
     }
     
     @objc(disconnectNetworkOnConnectedDevice:withIndex:withResolver:withRejecter:)
