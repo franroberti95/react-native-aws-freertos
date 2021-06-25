@@ -23,6 +23,8 @@ type AwsFreertosType = {
     macAddress: string,
     serviceUuidString: string
   ): void;
+  //ios only
+  getDeviceServices(deviceUuid: string): Promise<any[]>;
 };
 
 const { AwsFreertos } = NativeModules;

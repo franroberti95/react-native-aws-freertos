@@ -122,7 +122,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
     mHandler.post {
       val credentialsProvider: AWSCredentialsProvider = AWSMobileClient.getInstance()
       mAmazonFreeRTOSManager.connectToDevice(mBleDevice.bluetoothDevice,
-        connectionStatusCallback, credentialsProvider, true)
+        connectionStatusCallback, credentialsProvider, false)
     }
   }
 
