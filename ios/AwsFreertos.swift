@@ -215,6 +215,8 @@ class AwsFreertos: RCTEventEmitter {
         if(lastConnectedDevice == nil) {
             return
         }
+        
+        /*
         if(lastConnectedDevice?.savedNetworks != nil){
             for item in lastConnectedDevice?.savedNetworks ?? [] {
                 let yourAuxDic: NSMutableDictionary = [:]
@@ -229,7 +231,8 @@ class AwsFreertos: RCTEventEmitter {
                 result.add(yourAuxDic)
             }
         }
-            
+        */
+        
         if(lastConnectedDevice?.scanedNetworks != nil){
             for item in lastConnectedDevice?.scanedNetworks ?? [] {
               let yourAuxDic: NSMutableDictionary = [:]
