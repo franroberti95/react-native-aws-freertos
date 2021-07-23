@@ -171,6 +171,7 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
         Log.i("DEVICE", "Network saved ! status: " + response.toString())
 
         if (response.toString() != "SaveNetworkResponse ->\n status: 0") {
+          Log.e("DEVICE", "Error saving network:" + response.toString())
           sendEvent(WifiEvents.ERROR_SAVE_NETWORK.name, null)
         }else{
           if (lastConnectedWifiInfo != null) {
