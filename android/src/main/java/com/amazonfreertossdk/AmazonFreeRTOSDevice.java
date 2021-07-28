@@ -487,6 +487,7 @@ public class AmazonFreeRTOSDevice {
                          * Auto reconnect will be disabled when user initiates disconnect.
                          */
                         if (!mGattAutoReconnect) {
+                            gatt.disconnect();
                             gatt.close();
                             mBluetoothGatt = null;
                         } else {
