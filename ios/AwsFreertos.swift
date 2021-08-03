@@ -355,7 +355,7 @@ class AwsFreertos: RCTEventEmitter {
         let devices = Array(AmazonFreeRTOSManager.shared.devices.values)
 
         if let device = devices.first(where: {$0.peripheral.identifier.uuidString == uuid}) {
-            device.listNetwork(ListNetworkReq(maxNetworks: 10, timeout: 5))
+            device.listNetwork(ListNetworkReq(maxNetworks: 20, timeout: 10))
             resolve("OK")
         } else {
             reject("ERROR_NOT_FOUND", uuid, NSError(domain: "", code: 200, userInfo: nil))
