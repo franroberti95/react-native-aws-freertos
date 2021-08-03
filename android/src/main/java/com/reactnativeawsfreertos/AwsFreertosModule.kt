@@ -162,7 +162,10 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
           response.connected)
 
         bssidToString(wifiInfo.bssid)?.let { mBssid2WifiInfoMap.put(it, wifiInfo) }
-        sendEvent(WifiEvents.DID_LIST_NETWORK.name, networkResponseToWritableMap(response))
+        if(response.index < 0 || response.connected == true) {
+          // Saved and not connected to that network shouldnt be displayed
+          sendEvent(WifiEvents.DID_LIST_NETWORK.name, networkResponseToWritableMap(response))
+        }
       }
     }
     override fun onSaveNetworkResponse(response: SaveNetworkResp?) {
