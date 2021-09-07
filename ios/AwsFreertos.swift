@@ -120,13 +120,25 @@ class AwsFreertos: RCTEventEmitter {
     }
 
     @objc(didEditNetwork)
-    func didEditNetwork() -> Void {
-        self.sendEvent(withName:EventsEnum.DID_EDIT_NETWORK, body: "NETWORK EDITED");
+    func didEditNetwork(_ notification: Notification) -> Void {
+        if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
+            if saveNetworkResp.status != NetworkOpStatus.success {
+                self.sendEvent(withName:EventsEnum.ERROR_SAVE_NETWORK, body: "NETWORK EDIT FAILED");
+            }
+        } else {
+            self.sendEvent(withName:EventsEnum.DID_EDIT_NETWORK, body: "NETWORK EDITED");
+        }
     }
 
     @objc(didDeleteNetwork)
-    func didDeleteNetwork() -> Void {
-        self.sendEvent(withName:EventsEnum.DID_DELETE_NETWORK, body: "NETWORK DELETED");
+    func didDeleteNetwork(_ notification: Notification) -> Void {
+        if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
+            if saveNetworkResp.status != NetworkOpStatus.success {
+                self.sendEvent(withName:EventsEnum.ERROR_SAVE_NETWORK, body: "NETWORK DELETE FAILED");
+            }
+        } else {
+            self.sendEvent(withName:EventsEnum.DID_DELETE_NETWORK, body: "NETWORK DELETED");
+        }
     }
 
     @objc(didFailToConnectDevice)
@@ -135,11 +147,17 @@ class AwsFreertos: RCTEventEmitter {
     }
 
     @objc(didSaveNetwork)
-    func didSaveNetwork() -> Void {
-        let result: NSMutableDictionary = [:]
-        result["macAddr"] = lastConnectedDevice!.peripheral.identifier.uuidString
-        result["name"] = lastConnectedDevice!.peripheral.name
-        self.sendEvent(withName:EventsEnum.DID_SAVE_NETWORK, body: result);
+    func didSaveNetwork(_ notification: Notification) -> Void {
+        if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
+            if saveNetworkResp.status != NetworkOpStatus.success {
+                self.sendEvent(withName:EventsEnum.ERROR_SAVE_NETWORK, body: "NETWORK SAVE FAILED");
+            }
+        } else {
+            let result: NSMutableDictionary = [:]
+            result["macAddr"] = lastConnectedDevice!.peripheral.identifier.uuidString
+            result["name"] = lastConnectedDevice!.peripheral.name
+            self.sendEvent(withName:EventsEnum.DID_SAVE_NETWORK, body: result);
+        }
     }
 
     @objc(didConnectDevice)
