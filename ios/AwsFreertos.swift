@@ -146,7 +146,7 @@ class AwsFreertos: RCTEventEmitter {
         self.sendEvent(withName:EventsEnum.DID_FAIL_TO_CONNECT_DEVICE, body: "FAIL");
     }
 
-    @objc(didSaveNetwork)
+    @objc(didSaveNetwork:)
     func didSaveNetwork(_ notification: Notification) -> Void {
         if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
             if saveNetworkResp.status != NetworkOpStatus.success {
