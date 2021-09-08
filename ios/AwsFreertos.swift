@@ -119,7 +119,7 @@ class AwsFreertos: RCTEventEmitter {
         }
     }
 
-    @objc(didEditNetwork)
+    @objc(didEditNetwork:)
     func didEditNetwork(_ notification: Notification) -> Void {
         if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
             if saveNetworkResp.status != NetworkOpStatus.success {
@@ -130,7 +130,7 @@ class AwsFreertos: RCTEventEmitter {
         }
     }
 
-    @objc(didDeleteNetwork)
+    @objc(didDeleteNetwork:)
     func didDeleteNetwork(_ notification: Notification) -> Void {
         if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
             if saveNetworkResp.status != NetworkOpStatus.success {
