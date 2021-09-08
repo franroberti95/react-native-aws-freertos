@@ -40,6 +40,13 @@ class AwsFreertos: RCTEventEmitter {
             EventsEnum.DID_UPDATE_BLE_POWER_STATE
         ];
     }
+    
+    @objc(setAdvertisingServiceUUIDs:)
+    func setAdvertisingServiceUUIDs(_ uuids: Array<String>) -> Void {
+        let bleUuids : Array<CBUUID> = uuids.map { CBUUID (string: $0) }
+        
+        AmazonFreeRTOSManager.shared.advertisingServiceUUIDs = bleUuids
+    }
 
     @objc(requestBtPermissions:withRejecter:)
     func requestBtPermissions(_ resolve:RCTPromiseResolveBlock,withRejecter reject:RCTPromiseRejectBlock) -> Void {

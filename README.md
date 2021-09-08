@@ -60,6 +60,7 @@ const wifiListEvent = eventEmitter.addListener(
 type AwsFreertosType = {
   startScanBtDevices(): void;
   stopScanBtDevices(): void;
+  setAdvertisingServiceUUIDs(uuids: string[]): void;
   requestBtPermissions(): Promise<any>;
   connectDevice(macAddress: string): Promise<any>;
   disconnectDevice(macAddress: string): Promise<any>;
