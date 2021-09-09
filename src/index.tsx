@@ -25,6 +25,7 @@ type AwsFreertosType = {
   ): void;
   //ios only
   getDeviceServices(deviceUuid: string): Promise<any[]>;
+  setAdvertisingServiceUUIDs(uuids: string[]): void;
 };
 
 const { AwsFreertos } = NativeModules;
