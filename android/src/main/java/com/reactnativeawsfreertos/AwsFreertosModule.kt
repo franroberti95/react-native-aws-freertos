@@ -5,12 +5,14 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
+import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.ParcelUuid
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat.requestPermissions
@@ -45,6 +47,19 @@ class AwsFreertosModule(reactContext: ReactApplicationContext) : ReactContextBas
         }
       }
     }
+  }
+
+  @ReactMethod
+  fun setAdvertisingServiceUUIDs(uuids: ReadableArray) {
+    val filters = ArrayList<ScanFilter>()
+    for (uuid in uuids.toArrayList()) {
+      val scanFilter = ScanFilter.Builder()
+        .setServiceUuid(ParcelUuid.fromString(uuid.toString()))
+        .build()
+      filters.add(scanFilter)
+    }
+    val mAmazonFreeRTOSManager = AmazonFreeRTOSAgent.getAmazonFreeRTOSManager(currentActivity);
+    mAmazonFreeRTOSManager.setScanFilters(filters.toList())
   }
 
   @ReactMethod

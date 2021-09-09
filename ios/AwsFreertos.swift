@@ -40,6 +40,13 @@ class AwsFreertos: RCTEventEmitter {
             EventsEnum.DID_UPDATE_BLE_POWER_STATE
         ];
     }
+    
+    @objc(setAdvertisingServiceUUIDs:)
+    func setAdvertisingServiceUUIDs(_ uuids: Array<String>) -> Void {
+        let bleUuids : Array<CBUUID> = uuids.map { CBUUID (string: $0) }
+        
+        AmazonFreeRTOSManager.shared.advertisingServiceUUIDs = bleUuids
+    }
 
     @objc(requestBtPermissions:withRejecter:)
     func requestBtPermissions(_ resolve:RCTPromiseResolveBlock,withRejecter reject:RCTPromiseRejectBlock) -> Void {
@@ -119,7 +126,7 @@ class AwsFreertos: RCTEventEmitter {
         }
     }
 
-    @objc(didEditNetwork)
+    @objc(didEditNetwork:)
     func didEditNetwork(_ notification: Notification) -> Void {
         if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
             if saveNetworkResp.status != NetworkOpStatus.success {
@@ -130,7 +137,7 @@ class AwsFreertos: RCTEventEmitter {
         }
     }
 
-    @objc(didDeleteNetwork)
+    @objc(didDeleteNetwork:)
     func didDeleteNetwork(_ notification: Notification) -> Void {
         if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
             if saveNetworkResp.status != NetworkOpStatus.success {
@@ -146,7 +153,7 @@ class AwsFreertos: RCTEventEmitter {
         self.sendEvent(withName:EventsEnum.DID_FAIL_TO_CONNECT_DEVICE, body: "FAIL");
     }
 
-    @objc(didSaveNetwork)
+    @objc(didSaveNetwork:)
     func didSaveNetwork(_ notification: Notification) -> Void {
         if let saveNetworkResp = notification.userInfo?["saveNetworkResp"] as? SaveNetworkResp {
             if saveNetworkResp.status != NetworkOpStatus.success {
