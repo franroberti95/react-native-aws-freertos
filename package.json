@@ -1,6 +1,6 @@
 {
   "name": "react-native-aws-freertos",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "React native aws freertos bridge",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
